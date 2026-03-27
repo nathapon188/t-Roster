@@ -1,65 +1,50 @@
-import { Employee, Role, Shift, ShiftStatus } from './types';
+import { DbStaff, DbRole, DbShiftDefinition, DbRoster, DbStaffAvailability } from './types';
 
-export const LOCATIONS = ['Bourke St Cafe', 'Hay St Cafe', 'Main Kitchen'];
+// --- MOCK DATABASE TABLES ---
 
-export const EMPLOYEES: Employee[] = [
-  {
-    id: 'open',
-    name: 'Open Shifts',
-    initials: '?',
-    color: 'bg-gray-900 text-white',
-    defaultRole: Role.OPEN,
-    defaultLocation: 'Bourke St Cafe'
-  },
-  {
-    id: '1',
-    name: 'Gary Payne',
-    initials: 'GP',
-    color: 'bg-blue-100 text-blue-700',
-    defaultRole: Role.CHEF,
-    defaultLocation: 'Hay St Cafe'
-  },
-  {
-    id: '2',
-    name: 'Steve Harris',
-    initials: 'SH',
-    color: 'bg-emerald-100 text-emerald-700',
-    defaultRole: Role.MANAGER,
-    defaultLocation: 'Bourke St Cafe'
-  },
-  {
-    id: '3',
-    name: 'Crystal S. Gonzalez',
-    initials: 'CG',
-    color: 'bg-purple-100 text-purple-700',
-    defaultRole: Role.WAITER,
-    defaultLocation: 'Bourke St Cafe'
-  },
-  {
-    id: '4',
-    name: 'Kathleen Johnson',
-    initials: 'KJ',
-    color: 'bg-amber-100 text-amber-700',
-    defaultRole: Role.BARISTA,
-    defaultLocation: 'Bourke St Cafe'
-  },
-  {
-    id: '5',
-    name: 'Oliver Marin',
-    initials: 'OM',
-    color: 'bg-rose-100 text-rose-700',
-    defaultRole: Role.MANAGER,
-    defaultLocation: 'Hay St Cafe'
-  },
-  {
-    id: '6',
-    name: 'Bruce Deckand',
-    initials: 'BD',
-    color: 'bg-indigo-100 text-indigo-700',
-    defaultRole: Role.MANAGER,
-    defaultLocation: 'Bourke St Cafe',
-    hourlyRate: 1058.85
-  }
+export const DB_ROLES: DbRole[] = [
+  { role_id: 1, role_name: 'Staff' }
+];
+
+// UPDATED: Specific shifts as requested
+export const DB_SHIFTS_DEF: DbShiftDefinition[] = [
+  { shift_id: 1, shift_name: 'Morning', start_time: '06:00:00', end_time: '10:30:00' },
+  { shift_id: 2, shift_name: 'Lunch', start_time: '11:00:00', end_time: '15:00:00' },
+  { shift_id: 3, shift_name: 'Evening', start_time: '16:30:00', end_time: '21:00:00' }
+];
+
+// UPDATED: New Staff List (9 People)
+export const DB_STAFF: DbStaff[] = [
+  { staff_id: 1, first_name: 'LINNA', last_name: '', is_active: 1 },
+  { staff_id: 8, first_name: 'NAT', last_name: '', is_active: 1 },
+  { staff_id: 7, first_name: 'TAN', last_name: '(Teera)', is_active: 1 },
+  { staff_id: 2, first_name: 'BRYAN', last_name: '', is_active: 1 },  
+  { staff_id: 5, first_name: 'BEN', last_name: '', is_active: 1 },
+  { staff_id: 3, first_name: 'GRACE', last_name: '', is_active: 1 },
+  { staff_id: 6, first_name: 'SUE', last_name: '', is_active: 1 },
+  { staff_id: 4, first_name: 'MAI', last_name: '', is_active: 1 },
+  { staff_id: 9, first_name: 'PANG', last_name: '', is_active: 1 }
+];
+
+// Mapping: JS Day (0=Sun, 1=Mon...) to DB Day ID (1=Mon... 7=Sun)
+export const DAY_MAP: Record<number, number> = {
+  1: 1, // Mon
+  2: 2, // Tue
+  3: 3, // Wed
+  4: 4, // Thu
+  5: 5, // Fri
+  6: 6, // Sat
+  0: 7  // Sun
+};
+
+// Mock Availability
+export const DB_STAFF_AVAILABILITY: DbStaffAvailability[] = [
+  // Bryan W (ID 2)
+  { availability_id: 2, staff_id: 2, day_id: 4, shift_id: 3, is_available: 0, notes: 'Unavailable' },
+  { availability_id: 2, staff_id: 2, day_id: 5, shift_id: 3, is_available: 0, notes: 'Unavailable' },
+  { availability_id: 2, staff_id: 2, day_id: 6, shift_id: 3, is_available: 0, notes: 'Unavailable' },
+  { availability_id: 2, staff_id: 2, day_id: 7, shift_id: 3, is_available: 0, notes: 'Unavailable' }
+  
 ];
 
 // Helper to generate dates relative to today
@@ -71,121 +56,14 @@ const getRelativeDate = (diff: number) => {
   return formatDate(d);
 };
 
-export const MOCK_SHIFTS: Shift[] = [
-  // Today's Shifts
-  {
-    id: 's1',
-    employeeId: '1',
-    startTime: '07:00',
-    endTime: '14:00',
-    date: getRelativeDate(0),
-    location: 'Hay St Cafe',
-    role: Role.CHEF,
-    status: ShiftStatus.DRAFT,
-    duration: 7
-  },
-  {
-    id: 's2',
-    employeeId: '2',
-    startTime: '09:00',
-    endTime: '17:00',
-    date: getRelativeDate(0),
-    location: 'Bourke St Cafe',
-    role: Role.MANAGER,
-    status: ShiftStatus.DRAFT,
-    duration: 8
-  },
-  {
-    id: 's3',
-    employeeId: '3',
-    startTime: '09:00',
-    endTime: '17:00',
-    date: getRelativeDate(0),
-    location: 'Bourke St Cafe',
-    role: Role.WAITER,
-    status: ShiftStatus.LATE,
-    duration: 8
-  },
-  {
-    id: 's4',
-    employeeId: '4',
-    startTime: '09:00',
-    endTime: '17:00',
-    date: getRelativeDate(0),
-    location: 'Bourke St Cafe',
-    role: Role.BARISTA,
-    status: ShiftStatus.DRAFT,
-    duration: 8
-  },
-  {
-    id: 's5',
-    employeeId: '5',
-    startTime: '09:00',
-    endTime: '17:30',
-    date: getRelativeDate(0),
-    location: 'Hay St Cafe',
-    role: Role.MANAGER,
-    status: ShiftStatus.DRAFT,
-    duration: 8.5
-  },
+export const DB_ROSTER: DbRoster[] = [
+  // Today
+  { roster_id: 101, staff_id: 1, role_id: 1, day_id: 1, shift_id: 1, roster_date: getRelativeDate(0) },
+  { roster_id: 102, staff_id: 2, role_id: 1, day_id: 1, shift_id: 2, roster_date: getRelativeDate(0) },
+  { roster_id: 103, staff_id: 3, role_id: 1, day_id: 1, shift_id: 2, roster_date: getRelativeDate(0) },
   
-  // Weekly Mock Data (Spread out)
-  // Monday
-  {
-    id: 'w1',
-    employeeId: 'open',
-    startTime: '07:00',
-    endTime: '17:00',
-    date: getRelativeDate(1), // Tomorrow
-    location: 'Bourke St Cafe',
-    role: Role.WAITER,
-    status: ShiftStatus.DRAFT,
-    duration: 9
-  },
-  {
-    id: 'w2',
-    employeeId: '6',
-    startTime: '12:00',
-    endTime: '17:00',
-    date: getRelativeDate(1),
-    location: 'Bourke St Cafe',
-    role: Role.MANAGER,
-    status: ShiftStatus.PUBLISHED,
-    duration: 5
-  },
-   // Wednesday
-  {
-    id: 'w3',
-    employeeId: 'open',
-    startTime: '11:00',
-    endTime: '14:00',
-    date: getRelativeDate(3), 
-    location: 'Bourke St Cafe',
-    role: Role.WAITER,
-    status: ShiftStatus.DRAFT,
-    duration: 3
-  },
-  {
-    id: 'w4',
-    employeeId: '6',
-    startTime: '09:00',
-    endTime: '17:00',
-    date: getRelativeDate(3),
-    location: 'Bourke St Cafe',
-    role: Role.MANAGER,
-    status: ShiftStatus.PUBLISHED,
-    duration: 8
-  },
-    // Thursday
-  {
-    id: 'w5',
-    employeeId: '6',
-    startTime: '09:00',
-    endTime: '17:00',
-    date: getRelativeDate(4),
-    location: 'Bourke St Cafe',
-    role: Role.MANAGER,
-    status: ShiftStatus.LATE, // Simulate alert
-    duration: 8
-  },
+  // Weekly
+  { roster_id: 107, staff_id: 4, role_id: 1, day_id: 2, shift_id: 3, roster_date: getRelativeDate(1) },
 ];
+
+export const LOCATIONS = ['Taringa'];

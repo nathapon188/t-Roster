@@ -1,21 +1,20 @@
 import React from 'react';
-import { Clock, Plus, AlertTriangle, DollarSign } from 'lucide-react';
-import { Employee, Shift, Role, ShiftStatus } from '../types';
-import { EMPLOYEES } from '../constants';
+import { Clock, Plus, AlertTriangle, DollarSign, X } from 'lucide-react';
+import { Employee, Shift, ShiftStatus } from '../types';
 
 interface WeeklyTimetableViewProps {
   shifts: Shift[];
+  employees: Employee[];
   currentDate: Date;
-  onAddShift: (employeeId: string, date: string) => void;
+  onAddShift: (employeeId: string, date: string, type?: 'MORNING' | 'DINNER' | 'LUNCH') => void;
+  onDeleteShift: (shiftId: string) => void;
 }
 
-const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, currentDate, onAddShift }) => {
+const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, employees, currentDate, onAddShift, onDeleteShift }) => {
   
-  // Helper to get days of the week starting from current date (or start of week)
   const getWeekDays = (baseDate: Date) => {
     const days = [];
     const startOfWeek = new Date(baseDate);
-    // Adjust to Monday
     const day = startOfWeek.getDay();
     const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); 
     startOfWeek.setDate(diff);
@@ -29,129 +28,249 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, curre
   };
 
   const weekDays = getWeekDays(currentDate);
-
   const formatDateKey = (date: Date) => date.toISOString().split('T')[0];
 
-  const getShiftsForCell = (employeeId: string, date: Date) => {
+  const getShiftsForCell = (employeeId: string, date: Date, type: 'MORNING' | 'DINNER') => {
     const dateKey = formatDateKey(date);
-    return shifts.filter(s => s.employeeId === employeeId && s.date === dateKey);
+    return shifts.filter(s => {
+      const isMatch = s.employeeId === employeeId && s.date === dateKey;
+      if (!isMatch) return false;
+      
+      // Categorize based on start time or role/name
+      const startHour = parseInt(s.startTime.split(':')[0]);
+      if (type === 'MORNING') return startHour < 15;
+      if (type === 'DINNER') return startHour >= 15;
+      return false;
+    });
   };
 
-  const getRoleColor = (role: Role) => {
-    switch (role) {
-      case Role.MANAGER: return 'bg-red-500 text-white';
-      case Role.CHEF: return 'bg-orange-500 text-white';
-      case Role.WAITER: return 'bg-purple-600 text-white';
-      case Role.BARISTA: return 'bg-blue-500 text-white';
-      case Role.OPEN: return 'bg-black text-white';
-      default: return 'bg-gray-500 text-white';
-    }
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, targetEmployeeId: string, date: Date, type?: 'MORNING' | 'DINNER' | 'LUNCH') => {
+    e.preventDefault();
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('application/json'));
+      if (data.type === 'employee') {
+        onAddShift(data.id, formatDateKey(date), type);
+      }
+    } catch (err) {}
+  };
+
+  const calculateTotalHours = (employeeId: string, filter?: (s: Shift) => boolean) => {
+    const empShifts = shifts.filter(s => s.employeeId === employeeId && (!filter || filter(s)));
+    return empShifts.reduce((acc, s) => acc + s.duration, 0).toFixed(2);
   };
 
   return (
-    <div className="flex flex-col h-full bg-white overflow-hidden text-sm">
-      {/* Filters Bar */}
-      <div className="flex flex-wrap items-center gap-2 p-3 bg-gray-100 border-b border-gray-200">
-        <div className="bg-white border rounded px-3 py-1.5 text-gray-600 flex items-center min-w-[150px]">
-           <span className="mr-2">👤</span> Select Staff
-        </div>
-        <div className="bg-white border rounded px-3 py-1.5 text-gray-600 flex items-center min-w-[150px]">
-           <span className="mr-2">📍</span> Bourke St Cafe
-        </div>
-        <div className="flex-1"></div>
-        <div className="bg-white border rounded px-3 py-1.5 text-gray-600 flex items-center">
-           <span className="mr-2">✓</span> By Staff
-        </div>
-        <div className="bg-white border rounded px-3 py-1.5 text-gray-600 flex items-center">
-           <span className="mr-2">📅</span> All Shifts
-        </div>
-      </div>
-
-      {/* Grid Container */}
-      <div className="flex-1 overflow-auto">
-        <div className="min-w-[1000px]">
-          {/* Header Row */}
-          <div className="grid grid-cols-[250px_repeat(7,1fr)] sticky top-0 z-20 shadow-sm">
-            <div className="bg-gray-200 p-3 font-semibold text-gray-600 border-r border-b border-white">
-              EMPLOYEE NAME
-            </div>
+    <div className="flex flex-col h-full bg-white overflow-auto text-[10px] font-sans">
+      <table className="min-w-max border-collapse border border-gray-400">
+        <thead className="sticky top-0 z-20 bg-gray-100">
+          <tr>
+            <th rowSpan={2} className="border border-gray-400 p-1 w-32 bg-gray-200">
+              {weekDays[0].toLocaleDateString('en-US', { day: 'numeric', month: 'short' })} - {weekDays[6].toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
+            </th>
+            <th rowSpan={2} className="border border-gray-400 p-1 w-20 bg-gray-200 uppercase">Date</th>
             {weekDays.map((day, idx) => (
-              <div key={idx} className="bg-gray-200 p-2 border-r border-b border-white">
-                <div className="font-semibold text-gray-600 uppercase text-xs">
-                  {day.toLocaleDateString('en-US', { weekday: 'short' })} {day.getDate()}/{day.getMonth() + 1}
-                </div>
-              </div>
+              <th key={idx} colSpan={3} className="border border-gray-400 p-1 bg-green-50 text-green-800 uppercase font-bold">
+                {day.toLocaleDateString('en-US', { weekday: 'short' })}
+                <div className="text-[9px] font-normal text-gray-500">{day.getDate()}-{day.toLocaleDateString('en-US', { month: 'short' })}</div>
+              </th>
             ))}
-          </div>
-
-          {/* Rows */}
-          {EMPLOYEES.map((employee) => (
-            <div key={employee.id} className="grid grid-cols-[250px_repeat(7,1fr)] hover:bg-gray-50">
-              {/* Employee Column */}
-              <div className="p-3 border-r border-b border-gray-100 flex items-start gap-3 bg-white sticky left-0 z-10">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${employee.color}`}>
-                  {employee.initials}
-                </div>
-                <div className="min-w-0">
-                  <div className="font-medium text-gray-800 truncate">{employee.name}</div>
-                  {employee.id === 'open' ? (
-                    <div className="flex items-center text-xs text-gray-500 mt-1">
-                      <Clock size={12} className="mr-1" />
-                      <span>21.00</span>
+            <th rowSpan={2} className="border border-gray-400 p-1 w-12 bg-gray-200 uppercase">Week</th>
+            <th rowSpan={2} className="border border-gray-400 p-1 w-12 bg-gray-200 uppercase">Sat</th>
+            <th rowSpan={2} className="border border-gray-400 p-1 w-12 bg-gray-200 uppercase">Sun</th>
+            <th rowSpan={2} className="border border-gray-400 p-1 w-12 bg-gray-200 uppercase font-bold">Total</th>
+          </tr>
+          <tr>
+            {weekDays.map((_, idx) => (
+              <React.Fragment key={idx}>
+                <th className="border border-gray-400 p-0.5 w-10 text-[8px] bg-gray-50">IN</th>
+                <th className="border border-gray-400 p-0.5 w-10 text-[8px] bg-gray-50">OUT</th>
+                <th className="border border-gray-400 p-0.5 w-10 text-[8px] bg-green-100 text-green-700">HOUR</th>
+              </React.Fragment>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {employees.map((employee) => {
+            return (
+              <React.Fragment key={employee.id}>
+                {/* MORNING ROW */}
+                <tr className="hover:bg-gray-50 group">
+                  <td rowSpan={3} className="border border-gray-400 p-2 font-bold bg-white sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                    <div 
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('application/json', JSON.stringify({ type: 'employee', id: employee.id }));
+                      }}
+                      className="cursor-grab active:cursor-grabbing flex flex-col"
+                    >
+                      <span className="uppercase text-sm">{employee.name}</span>
+                      <span className="text-[8px] text-gray-400 font-normal">{employee.defaultRole}</span>
                     </div>
-                  ) : (
-                    <div className="flex items-center text-xs text-gray-500 mt-1 gap-2">
-                       <span className="flex items-center"><Clock size={12} className="mr-1"/> 40.00</span>
-                       {employee.hourlyRate && <span className="flex items-center"><DollarSign size={12} className="mr-1"/> {employee.hourlyRate}</span>}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Day Columns */}
-              {weekDays.map((day, idx) => {
-                const cellShifts = getShiftsForCell(employee.id, day);
-                const isPast = day < new Date(new Date().setHours(0,0,0,0));
-
-                return (
-                  <div key={idx} className={`p-1 border-r border-b border-gray-100 relative group min-h-[100px] flex flex-col gap-1 ${isPast ? 'bg-gray-50/50' : ''}`}>
-                    
-                    {/* Ghost Add Button */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                       <button 
-                        onClick={() => onAddShift(employee.id, formatDateKey(day))}
-                        className="bg-gray-100 rounded-full p-2 pointer-events-auto hover:bg-gray-200"
-                       >
-                         <Plus size={20} className="text-gray-400" />
-                       </button>
-                    </div>
-
-                    {cellShifts.map(shift => (
-                      <div key={shift.id} className="bg-white p-2 rounded border border-gray-200 shadow-sm relative z-10">
-                        <div className="text-xs text-gray-500 mb-1 truncate">{shift.location}</div>
-                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold mb-1 ${getRoleColor(shift.role)}`}>
-                          {shift.role}
-                        </span>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-medium text-gray-700">
-                             {shift.startTime} - {shift.endTime}
-                          </span>
-                          {shift.status === ShiftStatus.LATE && (
-                             <AlertTriangle size={14} className="text-red-500" />
+                  </td>
+                  <td className="border border-gray-400 p-1 font-bold text-blue-700 bg-blue-50/30 uppercase">Morning</td>
+                  {weekDays.map((day, idx) => {
+                    const morningShifts = getShiftsForCell(employee.id, day, 'MORNING');
+                    const shift = morningShifts[0];
+                    return (
+                      <React.Fragment key={idx}>
+                        <td 
+                          className="border border-gray-400 p-1 text-center relative group/cell"
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, employee.id, day, 'MORNING')}
+                        >
+                          {shift ? (
+                            <div className="relative group/shift">
+                              <div 
+                                draggable
+                                onDragStart={(e) => {
+                                  e.dataTransfer.setData('application/json', JSON.stringify({ type: 'shift', id: shift.id }));
+                                }}
+                                className="cursor-grab active:cursor-grabbing hover:text-green-600 transition-colors font-bold"
+                              >
+                                {shift.startTime}
+                              </div>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDeleteShift(shift.id);
+                                }}
+                                className="absolute -top-1 -right-1 opacity-0 group-hover/shift:opacity-100 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 transition-all z-20 shadow-sm no-export"
+                                title="Clear Shift"
+                              >
+                                <X size={8} />
+                              </button>
+                            </div>
+                          ) : (
+                            <button 
+                              onClick={() => onAddShift(employee.id, formatDateKey(day), 'MORNING')}
+                              className="absolute inset-0 opacity-0 group-hover/cell:opacity-100 bg-green-500/10 flex items-center justify-center no-export"
+                            >
+                              <Plus size={10} className="text-green-600" />
+                            </button>
                           )}
-                        </div>
-                         <div className="text-[10px] text-gray-400 mt-1">
-                            ({shift.duration}h)
-                         </div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-      </div>
+                        </td>
+                        <td className="border border-gray-400 p-1 text-center">
+                          {shift && (
+                            <div 
+                              draggable
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData('application/json', JSON.stringify({ type: 'shift', id: shift.id }));
+                              }}
+                              className="cursor-grab active:cursor-grabbing hover:text-green-600 transition-colors"
+                            >
+                              {shift.endTime}
+                            </div>
+                          )}
+                        </td>
+                        <td className="border border-gray-400 p-1 text-center font-bold text-green-700 bg-green-50/20">{shift?.duration || ''}</td>
+                      </React.Fragment>
+                    );
+                  })}
+                  <td rowSpan={3} className="border border-gray-400 p-1 text-center font-bold bg-gray-50">{calculateTotalHours(employee.id)}</td>
+                  <td rowSpan={3} className="border border-gray-400 p-1 text-center font-bold bg-gray-50">
+                    {calculateTotalHours(employee.id, (s) => new Date(s.date).getDay() === 6)}
+                  </td>
+                  <td rowSpan={3} className="border border-gray-400 p-1 text-center font-bold bg-gray-50">
+                    {calculateTotalHours(employee.id, (s) => new Date(s.date).getDay() === 0)}
+                  </td>
+                  <td rowSpan={3} className="border border-gray-400 p-1 text-center font-bold bg-green-50 text-green-800 text-xs">{calculateTotalHours(employee.id)}</td>
+                </tr>
+                
+                {/* LUNCH BREAK ROW */}
+                <tr className="bg-gray-50/30 text-[8px] italic text-gray-500">
+                  <td className="border border-gray-400 p-1 text-red-600 font-medium uppercase">Lunch break</td>
+                  {weekDays.map((day, idx) => {
+                    const morningShifts = getShiftsForCell(employee.id, day, 'MORNING');
+                    const shift = morningShifts[0];
+                    const showBreak = shift && 
+                      (shift.startTime === '06:00' || shift.startTime === '06:30') && 
+                      (shift.endTime === '14:00' || shift.endTime === '15:00');
+                    return (
+                      <React.Fragment key={idx}>
+                        <td colSpan={3} className="border border-gray-400 p-0.5 text-center">
+                          {showBreak ? 'less 30 min break' : ''}
+                        </td>
+                      </React.Fragment>
+                    );
+                  })}
+                </tr>
+
+                {/* DINNER ROW */}
+                <tr className="hover:bg-gray-50 group">
+                  <td className="border border-gray-400 p-1 font-bold text-orange-700 bg-orange-50/30 uppercase">Dinner</td>
+                  {weekDays.map((day, idx) => {
+                    const dinnerShifts = getShiftsForCell(employee.id, day, 'DINNER');
+                    const shift = dinnerShifts[0];
+                    return (
+                      <React.Fragment key={idx}>
+                        <td 
+                          className="border border-gray-400 p-1 text-center relative group/cell"
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, employee.id, day, 'DINNER')}
+                        >
+                          {shift ? (
+                            <div className="relative group/shift">
+                              <div 
+                                draggable
+                                onDragStart={(e) => {
+                                  e.dataTransfer.setData('application/json', JSON.stringify({ type: 'shift', id: shift.id }));
+                                }}
+                                className="cursor-grab active:cursor-grabbing hover:text-green-600 transition-colors font-bold"
+                              >
+                                {shift.startTime}
+                              </div>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDeleteShift(shift.id);
+                                }}
+                                className="absolute -top-1 -right-1 opacity-0 group-hover/shift:opacity-100 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 transition-all z-20 shadow-sm no-export"
+                                title="Clear Shift"
+                              >
+                                <X size={8} />
+                              </button>
+                            </div>
+                          ) : (
+                            <button 
+                              onClick={() => onAddShift(employee.id, formatDateKey(day), 'DINNER')}
+                              className="absolute inset-0 opacity-0 group-hover/cell:opacity-100 bg-green-500/10 flex items-center justify-center no-export"
+                            >
+                              <Plus size={10} className="text-green-600" />
+                            </button>
+                          )}
+                        </td>
+                        <td className="border border-gray-400 p-1 text-center">
+                          {shift && (
+                            <div 
+                              draggable
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData('application/json', JSON.stringify({ type: 'shift', id: shift.id }));
+                              }}
+                              className="cursor-grab active:cursor-grabbing hover:text-green-600 transition-colors"
+                            >
+                              {shift.endTime}
+                            </div>
+                          )}
+                        </td>
+                        <td className="border border-gray-400 p-1 text-center font-bold text-green-700 bg-green-50/20">{shift?.duration || ''}</td>
+                      </React.Fragment>
+                    );
+                  })}
+                </tr>
+                
+                {/* Spacer row */}
+                <tr className="h-2 bg-gray-200">
+                  <td colSpan={26} className="border-none"></td>
+                </tr>
+              </React.Fragment>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 };
