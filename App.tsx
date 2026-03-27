@@ -7,7 +7,6 @@ import AddShiftModal from './components/AddShiftModal';
 import AvailabilityModal from './components/AvailabilityModal';
 import { ViewMode, Shift, Employee, DbShiftDefinition, DbStaffAvailability } from './types';
 import { db } from './services/db';
-import { DB_CONFIG } from './config';
 
 const App: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('weekly');
@@ -67,7 +66,7 @@ const App: React.FC = () => {
 
       } catch (err) {
         console.error(err);
-        setError("Failed to connect to Google Cloud SQL");
+        setError("Failed to initialize database");
       } finally {
         setLoading(false);
       }
@@ -280,8 +279,7 @@ const App: React.FC = () => {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-100 text-gray-600">
          <Loader2 className="animate-spin mb-4 text-green-600" size={48} />
-         <p className="font-medium">Connecting to Google Cloud SQL...</p>
-         <p className="text-xs text-gray-400 mt-2 font-mono">{DB_CONFIG.host}</p>
+         <p className="font-medium">Loading Roster...</p>
       </div>
     );
   }
@@ -302,12 +300,6 @@ const App: React.FC = () => {
           </div>
           <h1 className="text-xl font-bold text-green-600 tracking-tight">ROSTER</h1>
           <span className="text-gray-400 text-sm hidden sm:block">| {getDateRangeString()}</span>
-          
-          {/* DB Status Indicator */}
-          <div className={`hidden md:flex items-center gap-1.5 px-2 py-1 rounded text-xs font-mono ml-4 border ${dbConnected ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-             {dbConnected ? <Wifi size={12} /> : <WifiOff size={12} />}
-             <span>{dbConnected ? 'DB ONLINE' : 'DB OFFLINE'}</span>
-          </div>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
@@ -438,7 +430,6 @@ const App: React.FC = () => {
             <div className="flex flex-col items-center justify-center h-full text-red-500">
               <Database size={48} className="mb-4" />
               <p className="font-bold">{error}</p>
-              <p className="text-sm mt-2">Check credentials in config.ts</p>
             </div>
           ) : viewMode === 'daily' ? (
             <DailyListView 

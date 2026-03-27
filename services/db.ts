@@ -1,4 +1,3 @@
-import { DB_CONFIG } from '../config';
 import { Shift, ShiftStatus, Employee, DbRoster, DbShiftDefinition, DbStaffAvailability } from '../types';
 import { DB_STAFF, DB_ROLES, DB_SHIFTS_DEF, DB_ROSTER, DB_STAFF_AVAILABILITY, DAY_MAP } from '../constants';
 
@@ -14,7 +13,7 @@ const COLORS = [
 ];
 
 class DatabaseService {
-  private connected = false;
+  private connected = true;
   // In-memory mock tables
   private rosterTable: DbRoster[] = [];
 
@@ -41,15 +40,9 @@ class DatabaseService {
   }
 
   async connect(): Promise<boolean> {
-    console.log(`[MySQL] Connecting to ${DB_CONFIG.host}...`);
-    await new Promise(resolve => setTimeout(resolve, 800)); // Simulate latency
-    
-    if (DB_CONFIG.password === 'Linna32@#') {
-      this.connected = true;
-      console.log(`[MySQL] Connected to database: ${DB_CONFIG.database}`);
-      return true;
-    }
-    throw new Error('Access Denied');
+    console.log(`[Local] Initializing local storage database...`);
+    this.connected = true;
+    return true;
   }
 
   // --- Reference Data ---
@@ -146,8 +139,8 @@ class DatabaseService {
   // Mimics "SELECT * FROM vw_weekly_roster" (Joining tables)
   async getShifts(): Promise<Shift[]> {
     this.ensureConnection();
-    console.log('[MySQL] EXEC: SELECT * FROM vw_weekly_roster');
-    await new Promise(resolve => setTimeout(resolve, 600));
+    console.log('[Local] Fetching roster data');
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     // Perform JOINs in memory
     return this.rosterTable.map(r => {
@@ -206,7 +199,7 @@ class DatabaseService {
     this.ensureConnection();
     const newId = Math.floor(Math.random() * 100000);
     
-    console.log(`[MySQL] INSERT INTO roster SET staff_id=${shift.employeeId}, roster_date='${shift.date}'...`);
+    console.log(`[Local] Adding shift to roster...`);
     
     // Find definition (use provided ID or default to 1)
     const defId = shiftDefId || 1;
@@ -233,7 +226,7 @@ class DatabaseService {
 
   async deleteShift(shiftId: string): Promise<void> {
     this.ensureConnection();
-    console.log(`[MySQL] DELETE FROM roster WHERE roster_id=${shiftId}`);
+    console.log(`[Local] Deleting shift ${shiftId}`);
     this.rosterTable = this.rosterTable.filter(r => r.roster_id.toString() !== shiftId);
     this.saveToStorage();
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -241,7 +234,7 @@ class DatabaseService {
 
   async restoreDefaultShifts(weekDates: Date[]): Promise<void> {
     this.ensureConnection();
-    console.log('[MySQL] Restoring default shifts for TAN (ID 7)...');
+    console.log('[Local] Restoring default shifts for TAN (ID 7)...');
     
     // TAN (ID 7)
     const tanId = 7;
