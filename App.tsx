@@ -5,7 +5,7 @@ import WeeklyTimetableView from './components/WeeklyTimetableView';
 import ExportModal from './components/ExportModal';
 import AddShiftModal from './components/AddShiftModal';
 import AvailabilityModal from './components/AvailabilityModal';
-import { ViewMode, Shift, Employee, DbShiftDefinition, DbStaffAvailability } from './types';
+import { ViewMode, Shift, Employee, DbShiftDefinition, DbStaffAvailability, ShiftStatus } from './types';
 import { db } from './services/db';
 
 const App: React.FC = () => {
@@ -146,11 +146,8 @@ const App: React.FC = () => {
     if (end < start) end += 24;
     
     let duration = end - start;
-    // Subtract 30 mins if it's a morning shift starting at 6:00/6:30 and ending at 14:00/15:00
-    const startFmt = newShift.startTime;
-    const endFmt = newShift.endTime;
-    const isMorning = start < 15;
-    if (isMorning && (startFmt === '06:00' || startFmt === '06:30') && (endFmt === '14:00' || endFmt === '15:00')) {
+    // Subtract 30 mins if the shift is more than 7 hours
+    if (duration > 7) {
       duration -= 0.5;
     }
     newShift.duration = duration;

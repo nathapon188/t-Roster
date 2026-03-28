@@ -15,35 +15,37 @@ interface AddShiftModalProps {
 }
 
 const AddShiftModal: React.FC<AddShiftModalProps> = ({ 
-  isOpen, onClose, onSave, employee, date, shiftDefinitions, availability, shiftType
+  isOpen, onClose, onSave, employee, date, shiftDefinitions, availability, shiftType: initialShiftType
 }) => {
   const [selectedStart, setSelectedStart] = React.useState<string | null>(null);
   const [selectedEnd, setSelectedEnd] = React.useState<string | null>(null);
+  const [localShiftType, setLocalShiftType] = React.useState<'MORNING' | 'DINNER' | 'LUNCH' | null>(null);
 
   // Reset selection when modal opens or shiftType changes
   React.useEffect(() => {
     if (isOpen) {
       setSelectedStart(null);
       setSelectedEnd(null);
+      setLocalShiftType(initialShiftType || null);
     }
-  }, [isOpen, shiftType]);
+  }, [isOpen, initialShiftType]);
 
   if (!isOpen || !employee) return null;
 
   const morningStarts = ['06:00', '06:30', '07:00', '07:30', '10:30', '11:00'];
   const morningEnds = ['10:30', '11:00', '14:00', '15:00'];
   
-  const dinnerStarts = ['16:30', '17:00'];
-  const dinnerEnds = ['20:30', '21:00', '21:30'];
+  const dinnerStarts = employee.id === '7' ? ['L', 'D'] : ['16:30', '17:00'];
+  const dinnerEnds = employee.id === '7' ? ['L', 'D'] : ['20:30', '21:00', '21:30'];
 
   const getStartOptions = () => {
-    if (shiftType === 'MORNING') return morningStarts;
-    if (shiftType === 'DINNER') return dinnerStarts;
+    if (localShiftType === 'MORNING') return morningStarts;
+    if (localShiftType === 'DINNER') return dinnerStarts;
     return [];
   };
 
   const getEndOptions = () => {
-    if (shiftType === 'MORNING') {
+    if (localShiftType === 'MORNING') {
       if (selectedStart === '06:00' || selectedStart === '06:30' || selectedStart === '07:00' || selectedStart === '07:30') {
         return ['10:30', '11:00', '14:00', '15:00'];
       }
@@ -52,7 +54,7 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
       }
       return morningEnds;
     }
-    if (shiftType === 'DINNER') return dinnerEnds;
+    if (localShiftType === 'DINNER') return dinnerEnds;
     return [];
   };
 
@@ -60,9 +62,9 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
   const endOptions = getEndOptions();
 
   const handleSave = () => {
-    if (shiftType && selectedStart && selectedEnd) {
+    if (localShiftType && selectedStart && selectedEnd) {
       // Find matching shift definition if possible, or just pass custom times
-      const defId = shiftType === 'MORNING' ? 1 : (shiftType === 'DINNER' ? 3 : 2);
+      const defId = localShiftType === 'MORNING' ? 1 : (localShiftType === 'DINNER' ? 3 : 2);
       onSave(defId, selectedStart, selectedEnd);
     }
   };
@@ -110,7 +112,7 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
             </div>
           </div>
 
-          {shiftType && (shiftType === 'MORNING' || shiftType === 'DINNER') ? (
+          {localShiftType && (localShiftType === 'MORNING' || localShiftType === 'DINNER') ? (
             <div className="space-y-6">
               <div>
                 <h4 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wider">Select Start Time</h4>
@@ -167,7 +169,13 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
                   return (
                     <button
                       key={def.shift_id}
-                      onClick={() => onSave(def.shift_id)}
+                      onClick={() => {
+                        if (employee.id === '7' && def.shift_id === 3) {
+                          setLocalShiftType('DINNER');
+                        } else {
+                          onSave(def.shift_id);
+                        }
+                      }}
                       className={`w-full text-left p-4 rounded-xl border-2 transition-all group flex items-center justify-between
                         ${available 
                           ? 'border-gray-200 hover:border-green-500 hover:bg-green-50' 

@@ -12,6 +12,13 @@ interface WeeklyTimetableViewProps {
 
 const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, employees, currentDate, onAddShift, onDeleteShift }) => {
   
+  const parseTimeToHours = (t: string) => {
+    if (!t || !t.includes(':')) return 0;
+    const [h, m] = t.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return 0;
+    return h + (m / 60);
+  };
+
   const getWeekDays = (baseDate: Date) => {
     const days = [];
     const startOfWeek = new Date(baseDate);
@@ -36,6 +43,11 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
       const isMatch = s.employeeId === employeeId && s.date === dateKey;
       if (!isMatch) return false;
       
+      // Handle special labels for TAN
+      if (s.startTime === 'L' || s.startTime === 'D') {
+        return type === 'DINNER';
+      }
+
       // Categorize based on start time or role/name
       const startHour = parseInt(s.startTime.split(':')[0]);
       if (type === 'MORNING') return startHour < 15;
@@ -59,6 +71,7 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
   };
 
   const calculateTotalHours = (employeeId: string, filter?: (s: Shift) => boolean) => {
+    if (employeeId === '7') return '-'; // No need to calculate hour for Tan
     const empShifts = shifts.filter(s => s.employeeId === employeeId && (!filter || filter(s)));
     return empShifts.reduce((acc, s) => acc + s.duration, 0).toFixed(2);
   };
@@ -72,25 +85,31 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
               {weekDays[0].toLocaleDateString('en-US', { day: 'numeric', month: 'short' })} - {weekDays[6].toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
             </th>
             <th rowSpan={2} className="border border-gray-400 p-1 w-20 bg-gray-200 uppercase">Date</th>
-            {weekDays.map((day, idx) => (
-              <th key={idx} colSpan={3} className="border border-gray-400 p-1 bg-green-50 text-green-800 uppercase font-bold">
-                {day.toLocaleDateString('en-US', { weekday: 'short' })}
-                <div className="text-[9px] font-normal text-gray-500">{day.getDate()}-{day.toLocaleDateString('en-US', { month: 'short' })}</div>
-              </th>
-            ))}
+            {weekDays.map((day, idx) => {
+              const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+              return (
+                <th key={idx} colSpan={3} className={`border border-gray-400 p-1 uppercase font-bold ${isWeekend ? 'bg-orange-50 text-orange-800' : 'bg-green-50 text-green-800'}`}>
+                  {day.toLocaleDateString('en-US', { weekday: 'short' })}
+                  <div className={`text-[9px] font-normal ${isWeekend ? 'text-orange-500/70' : 'text-gray-500'}`}>{day.getDate()}-{day.toLocaleDateString('en-US', { month: 'short' })}</div>
+                </th>
+              );
+            })}
             <th rowSpan={2} className="border border-gray-400 p-1 w-12 bg-gray-200 uppercase">Week</th>
-            <th rowSpan={2} className="border border-gray-400 p-1 w-12 bg-gray-200 uppercase">Sat</th>
-            <th rowSpan={2} className="border border-gray-400 p-1 w-12 bg-gray-200 uppercase">Sun</th>
+            <th rowSpan={2} className="border border-gray-400 p-1 w-12 bg-orange-100 text-orange-800 uppercase">Sat</th>
+            <th rowSpan={2} className="border border-gray-400 p-1 w-12 bg-orange-100 text-orange-800 uppercase">Sun</th>
             <th rowSpan={2} className="border border-gray-400 p-1 w-12 bg-gray-200 uppercase font-bold">Total</th>
           </tr>
           <tr>
-            {weekDays.map((_, idx) => (
-              <React.Fragment key={idx}>
-                <th className="border border-gray-400 p-0.5 w-10 text-[8px] bg-gray-50">IN</th>
-                <th className="border border-gray-400 p-0.5 w-10 text-[8px] bg-gray-50">OUT</th>
-                <th className="border border-gray-400 p-0.5 w-10 text-[8px] bg-green-100 text-green-700">HOUR</th>
-              </React.Fragment>
-            ))}
+            {weekDays.map((day, idx) => {
+              const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+              return (
+                <React.Fragment key={idx}>
+                  <th className={`border border-gray-400 p-0.5 w-10 text-[8px] ${isWeekend ? 'bg-orange-50/50' : 'bg-gray-50'}`}>IN</th>
+                  <th className={`border border-gray-400 p-0.5 w-10 text-[8px] ${isWeekend ? 'bg-orange-50/50' : 'bg-gray-50'}`}>OUT</th>
+                  <th className={`border border-gray-400 p-0.5 w-10 text-[8px] ${isWeekend ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>HOUR</th>
+                </React.Fragment>
+              );
+            })}
           </tr>
         </thead>
         <tbody>
@@ -166,7 +185,9 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                             </div>
                           )}
                         </td>
-                        <td className="border border-gray-400 p-1 text-center font-bold text-green-700 bg-green-50/20">{shift?.duration || ''}</td>
+                        <td className="border border-gray-400 p-1 text-center font-bold text-green-700 bg-green-50/20">
+                          {employee.id === '7' ? '-' : (shift?.duration || '')}
+                        </td>
                       </React.Fragment>
                     );
                   })}
@@ -186,9 +207,15 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                   {weekDays.map((day, idx) => {
                     const morningShifts = getShiftsForCell(employee.id, day, 'MORNING');
                     const shift = morningShifts[0];
-                    const showBreak = shift && 
-                      (shift.startTime === '06:00' || shift.startTime === '06:30') && 
-                      (shift.endTime === '14:00' || shift.endTime === '15:00');
+                    let showBreak = false;
+                    if (employee.id !== '7' && shift) {
+                      const start = parseTimeToHours(shift.startTime);
+                      let end = parseTimeToHours(shift.endTime);
+                      if (end < start) end += 24;
+                      if ((end - start) > 7) {
+                        showBreak = true;
+                      }
+                    }
                     return (
                       <React.Fragment key={idx}>
                         <td colSpan={3} className="border border-gray-400 p-0.5 text-center">
@@ -256,7 +283,9 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                             </div>
                           )}
                         </td>
-                        <td className="border border-gray-400 p-1 text-center font-bold text-green-700 bg-green-50/20">{shift?.duration || ''}</td>
+                        <td className="border border-gray-400 p-1 text-center font-bold text-green-700 bg-green-50/20">
+                          {employee.id === '7' ? '-' : (shift?.duration || '')}
+                        </td>
                       </React.Fragment>
                     );
                   })}

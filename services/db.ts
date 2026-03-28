@@ -170,12 +170,12 @@ class DatabaseService {
       let end = parseTimeToHours(endTime);
       if (end < start) end += 24;
 
-      let duration = end - start;
-      // Subtract 30 mins if it's a morning shift starting at 6:00/6:30 and ending at 14:00/15:00
       const startFmt = fmtTime(startTime);
       const endFmt = fmtTime(endTime);
-      const isMorning = parseTimeToHours(startTime) < 15;
-      if (isMorning && (startFmt === '06:00' || startFmt === '06:30') && (endFmt === '14:00' || endFmt === '15:00')) {
+
+      let duration = end - start;
+      // Subtract 30 mins if the shift is more than 7 hours
+      if (duration > 7) {
         duration -= 0.5;
       }
 
@@ -215,8 +215,8 @@ class DatabaseService {
       day_id: dayId, 
       shift_id: defId,
       roster_date: shift.date,
-      start_time_override: startTime ? `${startTime}:00` : undefined,
-      end_time_override: endTime ? `${endTime}:00` : undefined,
+      start_time_override: startTime ? (startTime.includes(':') ? `${startTime}:00` : startTime) : undefined,
+      end_time_override: endTime ? (endTime.includes(':') ? `${endTime}:00` : endTime) : undefined,
       notes: ''
     });
 
