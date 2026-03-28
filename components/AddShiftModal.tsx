@@ -62,10 +62,11 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
   const endOptions = getEndOptions();
 
   const handleSave = () => {
-    if (localShiftType && selectedStart && selectedEnd) {
+    const isSpecialEmployee = employee.id === '1' || employee.id === '9' || employee.id === '7';
+    if (localShiftType && selectedStart && (selectedEnd || isSpecialEmployee)) {
       // Find matching shift definition if possible, or just pass custom times
       const defId = localShiftType === 'MORNING' ? 1 : (localShiftType === 'DINNER' ? 3 : 2);
-      onSave(defId, selectedStart, selectedEnd);
+      onSave(defId, selectedStart, selectedEnd || '');
     }
   };
 
@@ -150,9 +151,9 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
               )}
 
               <button
-                disabled={!selectedStart || !selectedEnd}
+                disabled={!selectedStart || (!selectedEnd && !(employee.id === '1' || employee.id === '9' || employee.id === '7'))}
                 onClick={handleSave}
-                className={`w-full py-3 rounded-xl font-bold text-white shadow-lg transition-all ${selectedStart && selectedEnd ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-300 cursor-not-allowed'}`}
+                className={`w-full py-3 rounded-xl font-bold text-white shadow-lg transition-all ${selectedStart && (selectedEnd || (employee.id === '1' || employee.id === '9' || employee.id === '7')) ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-300 cursor-not-allowed'}`}
               >
                 Save Shift
               </button>
@@ -170,8 +171,11 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
                     <button
                       key={def.shift_id}
                       onClick={() => {
-                        if (employee.id === '7' && def.shift_id === 3) {
-                          setLocalShiftType('DINNER');
+                        const isSpecial = employee.id === '1' || employee.id === '9' || employee.id === '7';
+                        if (isSpecial) {
+                          if (def.shift_id === 1) setLocalShiftType('MORNING');
+                          else if (def.shift_id === 3) setLocalShiftType('DINNER');
+                          else onSave(def.shift_id);
                         } else {
                           onSave(def.shift_id);
                         }

@@ -126,7 +126,7 @@ const App: React.FC = () => {
       id: Math.random().toString(36).substr(2, 9),
       employeeId: empId,
       startTime: startTime || def?.start_time.substring(0, 5) || '00:00',
-      endTime: endTime || def?.end_time.substring(0, 5) || '00:00',
+      endTime: endTime !== undefined ? endTime : (def?.end_time.substring(0, 5) || '00:00'),
       date: dateStr,
       location: 'Taringa',
       role: 'Staff', // Defaulting for now
@@ -143,9 +143,9 @@ const App: React.FC = () => {
     };
     const start = parseTimeToHours(newShift.startTime);
     let end = parseTimeToHours(newShift.endTime);
-    if (end < start) end += 24;
+    if (end < start && newShift.endTime !== '') end += 24;
     
-    let duration = end - start;
+    let duration = newShift.endTime === '' ? 0 : (end - start);
     // Subtract 30 mins if the shift is more than 7 hours
     if (duration > 7) {
       duration -= 0.5;
@@ -374,54 +374,6 @@ const App: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Staff Sidebar */}
-        <aside className="w-64 bg-white border-r border-gray-200 flex flex-col hidden md:flex">
-          <div className="p-4 border-b border-gray-200 bg-gray-50">
-            <h2 className="font-black text-gray-900 uppercase tracking-tight">Staff</h2>
-            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Drag to roster to assign</p>
-          </div>
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
-            {employees.map(emp => (
-              <div 
-                key={emp.id}
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.setData('application/json', JSON.stringify({ type: 'employee', id: emp.id }));
-                }}
-                className="flex items-center gap-3 p-2 rounded-lg border border-gray-100 hover:border-green-300 hover:shadow-md cursor-grab active:cursor-grabbing bg-white transition-all group"
-              >
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black text-xs flex-shrink-0 ${emp.color} border border-black/5 group-hover:scale-110 transition-transform`}>
-                  {emp.initials}
-                </div>
-                <div className="min-w-0">
-                  <div className="font-black text-sm text-gray-900 uppercase truncate tracking-tight">{emp.name}</div>
-                  <div className="text-[10px] text-gray-500 font-bold uppercase truncate tracking-widest">{emp.defaultRole}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Trash Bin for Deletion */}
-          <div 
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={async (e) => {
-              e.preventDefault();
-              try {
-                const data = JSON.parse(e.dataTransfer.getData('application/json'));
-                if (data.type === 'shift') {
-                  handleDeleteShift(data.id);
-                }
-              } catch (err) {}
-            }}
-            className="p-6 border-t border-gray-200 bg-red-50 flex flex-col items-center justify-center gap-2 group transition-colors hover:bg-red-100"
-          >
-            <div className="w-12 h-12 rounded-full bg-white border-2 border-red-200 flex items-center justify-center text-red-500 group-hover:scale-110 group-hover:border-red-400 transition-all shadow-sm">
-              <CalendarX size={24} />
-            </div>
-            <span className="text-[10px] font-black uppercase text-red-600 tracking-widest">Drop here to delete</span>
-          </div>
-        </aside>
-
         <main ref={contentRef} className="flex-1 overflow-hidden relative">
           {error ? (
             <div className="flex flex-col items-center justify-center h-full text-red-500">

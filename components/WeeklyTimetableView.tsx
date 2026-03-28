@@ -56,20 +56,6 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
     });
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e: React.DragEvent, targetEmployeeId: string, date: Date, type?: 'MORNING' | 'DINNER' | 'LUNCH') => {
-    e.preventDefault();
-    try {
-      const data = JSON.parse(e.dataTransfer.getData('application/json'));
-      if (data.type === 'employee') {
-        onAddShift(data.id, formatDateKey(date), type);
-      }
-    } catch (err) {}
-  };
-
   const calculateTotalHours = (employeeId: string, filter?: (s: Shift) => boolean) => {
     if (employeeId === '7') return '-'; // No need to calculate hour for Tan
     const empShifts = shifts.filter(s => s.employeeId === employeeId && (!filter || filter(s)));
@@ -88,7 +74,7 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
             {weekDays.map((day, idx) => {
               const isWeekend = day.getDay() === 0 || day.getDay() === 6;
               return (
-                <th key={idx} colSpan={3} className={`border border-gray-400 p-1 uppercase font-bold ${isWeekend ? 'bg-orange-50 text-orange-800' : 'bg-green-50 text-green-800'}`}>
+                <th key={idx} colSpan={3} className={`border border-gray-400 p-1 uppercase font-bold ${isWeekend ? 'bg-orange-100 text-orange-800' : 'bg-green-50 text-green-800'}`}>
                   {day.toLocaleDateString('en-US', { weekday: 'short' })}
                   <div className={`text-[9px] font-normal ${isWeekend ? 'text-orange-500/70' : 'text-gray-500'}`}>{day.getDate()}-{day.toLocaleDateString('en-US', { month: 'short' })}</div>
                 </th>
@@ -119,13 +105,7 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                 {/* MORNING ROW */}
                 <tr className="hover:bg-gray-50 group">
                   <td rowSpan={3} className="border border-gray-400 p-2 font-bold bg-white sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                    <div 
-                      draggable
-                      onDragStart={(e) => {
-                        e.dataTransfer.setData('application/json', JSON.stringify({ type: 'employee', id: employee.id }));
-                      }}
-                      className="cursor-grab active:cursor-grabbing flex flex-col"
-                    >
+                    <div className="flex flex-col">
                       <span className="uppercase text-sm">{employee.name}</span>
                       <span className="text-[8px] text-gray-400 font-normal">{employee.defaultRole}</span>
                     </div>
@@ -136,20 +116,10 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                     const shift = morningShifts[0];
                     return (
                       <React.Fragment key={idx}>
-                        <td 
-                          className="border border-gray-400 p-1 text-center relative group/cell"
-                          onDragOver={handleDragOver}
-                          onDrop={(e) => handleDrop(e, employee.id, day, 'MORNING')}
-                        >
+                        <td className="border border-gray-400 p-1 text-center relative group/cell">
                           {shift ? (
                             <div className="relative group/shift">
-                              <div 
-                                draggable
-                                onDragStart={(e) => {
-                                  e.dataTransfer.setData('application/json', JSON.stringify({ type: 'shift', id: shift.id }));
-                                }}
-                                className="cursor-grab active:cursor-grabbing hover:text-green-600 transition-colors font-bold"
-                              >
+                              <div className="font-bold">
                                 {shift.startTime}
                               </div>
                               <button 
@@ -174,19 +144,13 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                         </td>
                         <td className="border border-gray-400 p-1 text-center">
                           {shift && (
-                            <div 
-                              draggable
-                              onDragStart={(e) => {
-                                e.dataTransfer.setData('application/json', JSON.stringify({ type: 'shift', id: shift.id }));
-                              }}
-                              className="cursor-grab active:cursor-grabbing hover:text-green-600 transition-colors"
-                            >
-                              {shift.endTime}
+                            <div>
+                              {shift.endTime || ((employee.id === '1' || employee.id === '9' || employee.id === '7') ? 'OPEN' : '')}
                             </div>
                           )}
                         </td>
                         <td className="border border-gray-400 p-1 text-center font-bold text-green-700 bg-green-50/20">
-                          {employee.id === '7' ? '-' : (shift?.duration || '')}
+                          {employee.id === '7' ? '-' : (shift && shift.duration > 0 ? shift.duration.toFixed(1) : '-')}
                         </td>
                       </React.Fragment>
                     );
@@ -234,20 +198,10 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                     const shift = dinnerShifts[0];
                     return (
                       <React.Fragment key={idx}>
-                        <td 
-                          className="border border-gray-400 p-1 text-center relative group/cell"
-                          onDragOver={handleDragOver}
-                          onDrop={(e) => handleDrop(e, employee.id, day, 'DINNER')}
-                        >
+                        <td className="border border-gray-400 p-1 text-center relative group/cell">
                           {shift ? (
                             <div className="relative group/shift">
-                              <div 
-                                draggable
-                                onDragStart={(e) => {
-                                  e.dataTransfer.setData('application/json', JSON.stringify({ type: 'shift', id: shift.id }));
-                                }}
-                                className="cursor-grab active:cursor-grabbing hover:text-green-600 transition-colors font-bold"
-                              >
+                              <div className="font-bold">
                                 {shift.startTime}
                               </div>
                               <button 
@@ -272,19 +226,13 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                         </td>
                         <td className="border border-gray-400 p-1 text-center">
                           {shift && (
-                            <div 
-                              draggable
-                              onDragStart={(e) => {
-                                e.dataTransfer.setData('application/json', JSON.stringify({ type: 'shift', id: shift.id }));
-                              }}
-                              className="cursor-grab active:cursor-grabbing hover:text-green-600 transition-colors"
-                            >
-                              {shift.endTime}
+                            <div>
+                              {shift.endTime || ((employee.id === '1' || employee.id === '9' || employee.id === '7') ? 'OPEN' : '')}
                             </div>
                           )}
                         </td>
                         <td className="border border-gray-400 p-1 text-center font-bold text-green-700 bg-green-50/20">
-                          {employee.id === '7' ? '-' : (shift?.duration || '')}
+                          {employee.id === '7' ? '-' : (shift && shift.duration > 0 ? shift.duration.toFixed(1) : '-')}
                         </td>
                       </React.Fragment>
                     );
@@ -293,7 +241,7 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                 
                 {/* Spacer row */}
                 <tr className="h-2 bg-gray-200">
-                  <td colSpan={26} className="border-none"></td>
+                  <td colSpan={27} className="border-none"></td>
                 </tr>
               </React.Fragment>
             );

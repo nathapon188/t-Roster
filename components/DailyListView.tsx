@@ -63,15 +63,10 @@ const DailyListView: React.FC<DailyListViewProps> = ({ shifts, employees, curren
       </div>
 
       {/* List Content */}
-      <div 
-        className="flex-1 overflow-y-auto p-4 space-y-3 pb-24"
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-24">
         {shifts.length === 0 ? (
           <div className="text-center text-gray-400 mt-10">
             <p>No shifts scheduled for this day.</p>
-            <p className="text-sm mt-2">Drag a staff member here to add a shift.</p>
           </div>
         ) : (
           shifts.map((shift) => {
@@ -83,12 +78,8 @@ const DailyListView: React.FC<DailyListViewProps> = ({ shifts, employees, curren
             return (
               <div 
                 key={shift.id} 
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.setData('application/json', JSON.stringify({ type: 'shift', id: shift.id }));
-                }}
                 onClick={() => onEditShift(shift)}
-                className={`bg-white rounded-lg shadow-sm border-l-8 p-4 flex items-center cursor-grab active:cursor-grabbing hover:shadow-md transition active:scale-[0.99] ${isLate ? 'border-red-500' : 'border-green-600'}`}
+                className={`bg-white rounded-lg shadow-sm border-l-8 p-4 flex items-center hover:shadow-md transition active:scale-[0.99] ${isLate ? 'border-red-500' : 'border-green-600'}`}
               >
                 {/* Initials Avatar */}
                 <div className="mr-4 flex-shrink-0">
@@ -106,7 +97,7 @@ const DailyListView: React.FC<DailyListViewProps> = ({ shifts, employees, curren
                 {/* Time & Status */}
                 <div className="text-right flex-shrink-0 ml-2 flex flex-col items-end gap-2">
                   <p className="font-black text-gray-900 text-2xl tabular-nums leading-none">
-                    {shift.startTime} - {shift.endTime}
+                    {shift.startTime} - {shift.endTime || 'OPEN'}
                   </p>
                   <div className="flex items-center gap-2">
                     <p className={`text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block ${isLate ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
