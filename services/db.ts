@@ -163,17 +163,17 @@ class DatabaseService {
         return h + (m / 60);
       };
 
-      const startTime = r.start_time_override || shiftDef.start_time;
-      const endTime = r.end_time_override || shiftDef.end_time;
+      const startTime = r.start_time_override !== undefined ? r.start_time_override : shiftDef.start_time;
+      const endTime = r.end_time_override !== undefined ? r.end_time_override : shiftDef.end_time;
 
       const start = parseTimeToHours(startTime);
       let end = parseTimeToHours(endTime);
-      if (end < start) end += 24;
+      if (end < start && endTime !== '') end += 24;
 
       const startFmt = fmtTime(startTime);
       const endFmt = fmtTime(endTime);
 
-      let duration = end - start;
+      let duration = (endTime === '' || startTime === '' || startTime === 'L' || startTime === 'D') ? 0 : (end - start);
       // Subtract 30 mins if the shift is more than 7 hours
       if (duration > 7) {
         duration -= 0.5;
@@ -215,8 +215,8 @@ class DatabaseService {
       day_id: dayId, 
       shift_id: defId,
       roster_date: shift.date,
-      start_time_override: startTime ? (startTime.includes(':') ? `${startTime}:00` : startTime) : undefined,
-      end_time_override: endTime ? (endTime.includes(':') ? `${endTime}:00` : endTime) : undefined,
+      start_time_override: startTime !== undefined ? (startTime.includes(':') ? `${startTime}:00` : startTime) : undefined,
+      end_time_override: endTime !== undefined ? (endTime.includes(':') ? `${endTime}:00` : endTime) : undefined,
       notes: ''
     });
 

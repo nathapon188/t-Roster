@@ -122,16 +122,17 @@ const App: React.FC = () => {
     const dateStr = date.toISOString().split('T')[0];
     const def = shiftDefinitions.find(d => d.shift_id === shiftDefId);
 
+    const isSpecial = empId === '1' || empId === '9' || empId === '7';
     const newShift: Shift = {
       id: Math.random().toString(36).substr(2, 9),
       employeeId: empId,
       startTime: startTime || def?.start_time.substring(0, 5) || '00:00',
-      endTime: endTime !== undefined ? endTime : (def?.end_time.substring(0, 5) || '00:00'),
+      endTime: endTime !== undefined ? endTime : (isSpecial ? '' : (def?.end_time.substring(0, 5) || '00:00')),
       date: dateStr,
       location: 'Taringa',
       role: 'Staff', // Defaulting for now
       status: 'Draft' as any,
-      duration: 0 // logic inside db svc handles this usually, or simple calc
+      duration: 0 
     };
     
     // Simple duration calc for optimistic UI

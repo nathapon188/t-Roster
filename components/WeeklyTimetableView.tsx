@@ -59,7 +59,12 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
   const calculateTotalHours = (employeeId: string, filter?: (s: Shift) => boolean) => {
     if (employeeId === '7') return '-'; // No need to calculate hour for Tan
     const empShifts = shifts.filter(s => s.employeeId === employeeId && (!filter || filter(s)));
-    return empShifts.reduce((acc, s) => acc + s.duration, 0).toFixed(2);
+    
+    // If any shift is "open" (blank endTime), don't calculate total
+    if (empShifts.some(s => s.endTime === '')) return '-';
+    
+    const total = empShifts.reduce((acc, s) => acc + s.duration, 0);
+    return total > 0 ? total.toFixed(2) : '-';
   };
 
   return (

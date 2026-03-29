@@ -40,10 +40,13 @@ export const DAY_MAP: Record<number, number> = {
 // Mock Availability
 export const DB_STAFF_AVAILABILITY: DbStaffAvailability[] = [
   // Bryan W (ID 2)
-  { availability_id: 2, staff_id: 2, day_id: 4, shift_id: 3, is_available: 0, notes: 'Unavailable' },
+  { availability_id: 1, staff_id: 2, day_id: 4, shift_id: 3, is_available: 0, notes: 'Unavailable' },
   { availability_id: 2, staff_id: 2, day_id: 5, shift_id: 3, is_available: 0, notes: 'Unavailable' },
-  { availability_id: 2, staff_id: 2, day_id: 6, shift_id: 3, is_available: 0, notes: 'Unavailable' },
-  { availability_id: 2, staff_id: 2, day_id: 7, shift_id: 3, is_available: 0, notes: 'Unavailable' }
+  { availability_id: 3, staff_id: 2, day_id: 6, shift_id: 3, is_available: 0, notes: 'Unavailable' },
+  { availability_id: 4, staff_id: 2, day_id: 7, shift_id: 3, is_available: 0, notes: 'Unavailable' },
+  //Nat (ID 8)
+  { availability_id: 5, staff_id: 8, day_id: 7, shift_id: 1, is_available: 0, notes: 'Unavailable' },
+  { availability_id: 6, staff_id: 8, day_id: 7, shift_id: 2, is_available: 0, notes: 'Unavailable' }
   
 ];
 
