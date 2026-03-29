@@ -122,7 +122,7 @@ const App: React.FC = () => {
     const dateStr = date.toISOString().split('T')[0];
     const def = shiftDefinitions.find(d => d.shift_id === shiftDefId);
 
-    const isSpecial = empId === '1' || empId === '9' || empId === '7';
+    const isSpecial = empId === '1' || empId === '9' || empId === '3';
     const newShift: Shift = {
       id: Math.random().toString(36).substr(2, 9),
       employeeId: empId,

@@ -35,8 +35,8 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
   const morningStarts = ['06:00', '06:30', '07:00', '07:30', '10:30', '11:00'];
   const morningEnds = ['10:30', '11:00', '14:00', '15:00'];
   
-  const dinnerStarts = employee.id === '7' ? ['L', 'D'] : ['16:30', '17:00'];
-  const dinnerEnds = employee.id === '7' ? ['L', 'D'] : ['20:30', '21:00', '21:30'];
+  const dinnerStarts = employee.id === '3' ? ['L', 'D'] : ['16:30', '17:00'];
+  const dinnerEnds = employee.id === '3' ? ['L', 'D'] : ['20:30', '21:00', '21:30'];
 
   const getStartOptions = () => {
     if (localShiftType === 'MORNING') return morningStarts;
@@ -62,7 +62,7 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
   const endOptions = getEndOptions();
 
   const handleSave = () => {
-    const isSpecialEmployee = employee.id === '1' || employee.id === '9' || employee.id === '7';
+    const isSpecialEmployee = employee.id === '1' || employee.id === '9' || employee.id === '3';
     if (localShiftType && selectedStart && (selectedEnd || isSpecialEmployee)) {
       // Find matching shift definition if possible, or just pass custom times
       const defId = localShiftType === 'MORNING' ? 1 : (localShiftType === 'DINNER' ? 3 : 2);
@@ -151,9 +151,9 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
               )}
 
               <button
-                disabled={!selectedStart || (!selectedEnd && !(employee.id === '1' || employee.id === '9' || employee.id === '7'))}
+                disabled={!selectedStart || (!selectedEnd && !(employee.id === '1' || employee.id === '9' || employee.id === '3'))}
                 onClick={handleSave}
-                className={`w-full py-3 rounded-xl font-bold text-white shadow-lg transition-all ${selectedStart && (selectedEnd || (employee.id === '1' || employee.id === '9' || employee.id === '7')) ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-300 cursor-not-allowed'}`}
+                className={`w-full py-3 rounded-xl font-bold text-white shadow-lg transition-all ${selectedStart && (selectedEnd || (employee.id === '1' || employee.id === '9' || employee.id === '3')) ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-300 cursor-not-allowed'}`}
               >
                 Save Shift
               </button>
@@ -171,7 +171,7 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
                     <button
                       key={def.shift_id}
                       onClick={() => {
-                        const isSpecial = employee.id === '1' || employee.id === '9' || employee.id === '7';
+                        const isSpecial = employee.id === '1' || employee.id === '9' || employee.id === '3';
                         if (isSpecial) {
                           if (def.shift_id === 1) setLocalShiftType('MORNING');
                           else if (def.shift_id === 3) setLocalShiftType('DINNER');

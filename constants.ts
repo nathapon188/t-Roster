@@ -16,13 +16,13 @@ export const DB_SHIFTS_DEF: DbShiftDefinition[] = [
 // UPDATED: New Staff List (9 People)
 export const DB_STAFF: DbStaff[] = [
   { staff_id: 1, first_name: 'LINNA', last_name: '', is_active: 1 },
-  { staff_id: 8, first_name: 'NAT', last_name: '', is_active: 1 },
-  { staff_id: 7, first_name: 'TAN', last_name: '(Teera)', is_active: 1 },
-  { staff_id: 2, first_name: 'BRYAN', last_name: '', is_active: 1 },  
+  { staff_id: 2, first_name: 'NAT', last_name: '', is_active: 1 },
+  { staff_id: 3, first_name: 'TAN', last_name: '(Teera)', is_active: 1 },
+  { staff_id: 4, first_name: 'BRYAN', last_name: '', is_active: 1 },  
   { staff_id: 5, first_name: 'BEN', last_name: '', is_active: 1 },
-  { staff_id: 3, first_name: 'GRACE', last_name: '', is_active: 1 },
-  { staff_id: 6, first_name: 'SUE', last_name: '', is_active: 1 },
-  { staff_id: 4, first_name: 'MAI', last_name: '', is_active: 1 },
+  { staff_id: 6, first_name: 'GRACE', last_name: '', is_active: 1 },
+  { staff_id: 7, first_name: 'SUE', last_name: '', is_active: 1 },
+  { staff_id: 8, first_name: 'MAI', last_name: '', is_active: 1 },
   { staff_id: 9, first_name: 'PANG', last_name: '', is_active: 1 }
 ];
 
@@ -39,14 +39,14 @@ export const DAY_MAP: Record<number, number> = {
 
 // Mock Availability
 export const DB_STAFF_AVAILABILITY: DbStaffAvailability[] = [
-  // Bryan W (ID 2)
-  { availability_id: 1, staff_id: 2, day_id: 4, shift_id: 3, is_available: 0, notes: 'Unavailable' },
-  { availability_id: 2, staff_id: 2, day_id: 5, shift_id: 3, is_available: 0, notes: 'Unavailable' },
-  { availability_id: 3, staff_id: 2, day_id: 6, shift_id: 3, is_available: 0, notes: 'Unavailable' },
-  { availability_id: 4, staff_id: 2, day_id: 7, shift_id: 3, is_available: 0, notes: 'Unavailable' },
-  //Nat (ID 8)
-  { availability_id: 5, staff_id: 8, day_id: 7, shift_id: 1, is_available: 0, notes: 'Unavailable' },
-  { availability_id: 6, staff_id: 8, day_id: 7, shift_id: 2, is_available: 0, notes: 'Unavailable' }
+  // Bryan W (ID 4)
+  { availability_id: 1, staff_id: 4, day_id: 4, shift_id: 3, is_available: 0, notes: 'Unavailable' },
+  { availability_id: 2, staff_id: 4, day_id: 5, shift_id: 3, is_available: 0, notes: 'Unavailable' },
+  { availability_id: 3, staff_id: 4, day_id: 6, shift_id: 3, is_available: 0, notes: 'Unavailable' },
+  { availability_id: 4, staff_id: 4, day_id: 7, shift_id: 3, is_available: 0, notes: 'Unavailable' },
+  //Nat (ID 2)
+  { availability_id: 5, staff_id: 2, day_id: 7, shift_id: 1, is_available: 0, notes: 'Unavailable' },
+  { availability_id: 6, staff_id: 2, day_id: 7, shift_id: 2, is_available: 0, notes: 'Unavailable' }
   
 ];
 

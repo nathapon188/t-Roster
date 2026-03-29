@@ -69,7 +69,16 @@ const DailyListView: React.FC<DailyListViewProps> = ({ shifts, employees, curren
             <p>No shifts scheduled for this day.</p>
           </div>
         ) : (
-          shifts.map((shift) => {
+          [...shifts]
+            .sort((a, b) => {
+              const indexA = employees.findIndex(e => e.id === a.employeeId);
+              const indexB = employees.findIndex(e => e.id === b.employeeId);
+              if (indexA !== indexB) return indexA - indexB;
+              
+              // If same employee, sort by start time
+              return a.startTime.localeCompare(b.startTime);
+            })
+            .map((shift) => {
             const employee = getEmployee(shift.employeeId);
             if (!employee) return null;
 

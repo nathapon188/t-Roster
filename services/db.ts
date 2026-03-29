@@ -117,9 +117,9 @@ class DatabaseService {
         }
 
         let defaultRole = 'Staff';
-      if (s.staff_id >= 2 && s.staff_id <= 6) {
+      if (s.staff_id >= 4 && s.staff_id <= 8) {
         defaultRole = 'Floor Staff';
-      } else if (s.staff_id === 7 || s.staff_id === 8 || s.staff_id === 9) {
+      } else if (s.staff_id === 2 || s.staff_id === 3 || s.staff_id === 9) {
         defaultRole = 'Kitchen';
       } else if (s.staff_id === 1) {
         defaultRole = 'Kitchen/Front';
@@ -234,10 +234,10 @@ class DatabaseService {
 
   async restoreDefaultShifts(weekDates: Date[]): Promise<void> {
     this.ensureConnection();
-    console.log('[Local] Restoring default shifts for TAN (ID 7)...');
+    console.log('[Local] Restoring default shifts for TAN (ID 3)...');
     
-    // TAN (ID 7)
-    const tanId = 7;
+    // TAN (ID 3)
+    const tanId = 3;
     
     // For each day in the week
     weekDates.forEach(date => {

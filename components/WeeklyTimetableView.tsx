@@ -57,7 +57,7 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
   };
 
   const calculateTotalHours = (employeeId: string, filter?: (s: Shift) => boolean) => {
-    if (employeeId === '7') return '-'; // No need to calculate hour for Tan
+    if (employeeId === '3') return '-'; // No need to calculate hour for Tan
     const empShifts = shifts.filter(s => s.employeeId === employeeId && (!filter || filter(s)));
     
     // If any shift is "open" (blank endTime), don't calculate total
@@ -150,7 +150,7 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                         <td className="border border-gray-400 p-1 text-center">
                           {shift && (
                             <div>
-                              {shift.endTime || ((employee.id === '1' || employee.id === '9' || employee.id === '7') ? 'OPEN' : '')}
+                              {shift.endTime || ((employee.id === '1' || employee.id === '9' || employee.id === '3') ? 'OPEN' : '')}
                             </div>
                           )}
                         </td>
@@ -177,7 +177,7 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                     const morningShifts = getShiftsForCell(employee.id, day, 'MORNING');
                     const shift = morningShifts[0];
                     let showBreak = false;
-                    if (employee.id !== '7' && shift) {
+                    if (employee.id !== '3' && shift) {
                       const start = parseTimeToHours(shift.startTime);
                       let end = parseTimeToHours(shift.endTime);
                       if (end < start) end += 24;
@@ -232,12 +232,12 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                         <td className="border border-gray-400 p-1 text-center">
                           {shift && (
                             <div>
-                              {shift.endTime || ((employee.id === '1' || employee.id === '9' || employee.id === '7') ? 'OPEN' : '')}
+                              {shift.endTime || ((employee.id === '1' || employee.id === '9' || employee.id === '3') ? 'OPEN' : '')}
                             </div>
                           )}
                         </td>
                         <td className="border border-gray-400 p-1 text-center font-bold text-green-700 bg-green-50/20">
-                          {employee.id === '7' ? '-' : (shift && shift.duration > 0 ? shift.duration.toFixed(1) : '-')}
+                          {employee.id === '3' ? '-' : (shift && shift.duration > 0 ? shift.duration.toFixed(1) : '-')}
                         </td>
                       </React.Fragment>
                     );
