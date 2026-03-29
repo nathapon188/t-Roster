@@ -155,7 +155,7 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                           )}
                         </td>
                         <td className="border border-gray-400 p-1 text-center font-bold text-green-700 bg-green-50/20">
-                          {employee.id === '7' ? '-' : (shift && shift.duration > 0 ? shift.duration.toFixed(1) : '-')}
+                          {shift && shift.duration > 0 ? shift.duration.toFixed(1) : '-'}
                         </td>
                       </React.Fragment>
                     );
