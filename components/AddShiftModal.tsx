@@ -32,11 +32,25 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
 
   if (!isOpen || !employee) return null;
 
-  const morningStarts = ['06:00', '06:30', '07:00', '07:30', '10:30', '11:00'];
-  const morningEnds = ['10:30', '11:00', '14:00', '15:00'];
+  const morningStarts = [
+    '06:00', '06:15', '06:30', '06:45', '07:00', '07:15', '07:30', '07:45', 
+    '08:00', '08:15', '08:30', '08:45', '09:00', '09:15', '09:30', '09:45', 
+    '10:00', '10:15', '10:30', '10:45', '11:00'
+  ];
+  const morningEnds = [
+    '10:30', '10:45', '11:00', '11:15', '11:30', '11:45', '12:00', '12:15', 
+    '12:30', '12:45', '13:00', '13:15', '13:30', '13:45', '14:00', '14:15', 
+    '14:30', '14:45', '15:00'
+  ];
   
-  const dinnerStarts = employee.id === '3' ? ['L', 'D'] : ['16:30', '17:00'];
-  const dinnerEnds = employee.id === '3' ? ['L', 'D'] : ['20:30', '21:00', '21:30'];
+  const dinnerStarts = employee.id === '3' ? ['L', 'D'] : ['16:30', '17:00', '17:15'];
+  const dinnerEnds = employee.id === '3' ? ['L', 'D'] : ['20:30', '20:45', '21:00', '21:15', '21:30', '21:45', '22:00'];
+
+  const parseTimeToMinutes = (t: string) => {
+    if (!t || !t.includes(':')) return 0;
+    const [h, m] = t.split(':').map(Number);
+    return h * 60 + m;
+  };
 
   const getStartOptions = () => {
     if (localShiftType === 'MORNING') return morningStarts;
@@ -46,15 +60,15 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
 
   const getEndOptions = () => {
     if (localShiftType === 'MORNING') {
-      if (selectedStart === '06:00' || selectedStart === '06:30' || selectedStart === '07:00' || selectedStart === '07:30') {
-        return ['10:30', '11:00', '14:00', '15:00'];
-      }
-      if (selectedStart === '10:30' || selectedStart === '11:00') {
-        return ['14:00', '15:00'];
-      }
-      return morningEnds;
+      if (!selectedStart) return morningEnds;
+      const startVal = parseTimeToMinutes(selectedStart);
+      return morningEnds.filter(time => parseTimeToMinutes(time) > startVal);
     }
-    if (localShiftType === 'DINNER') return dinnerEnds;
+    if (localShiftType === 'DINNER') {
+      if (!selectedStart || employee.id === '3') return dinnerEnds;
+      const startVal = parseTimeToMinutes(selectedStart);
+      return dinnerEnds.filter(time => parseTimeToMinutes(time) > startVal);
+    }
     return [];
   };
 
@@ -117,7 +131,7 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
             <div className="space-y-6">
               <div>
                 <h4 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wider">Select Start Time</h4>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   {startOptions.map(time => (
                     <button
                       key={time}
@@ -136,7 +150,7 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
               {selectedStart && (
                 <div>
                   <h4 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wider">Select Out Time</h4>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-4 gap-2">
                     {endOptions.map(time => (
                       <button
                         key={time}
