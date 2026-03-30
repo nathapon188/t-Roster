@@ -72,10 +72,10 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
       <table className="min-w-max border-collapse border border-gray-400">
         <thead className="sticky top-0 z-20 bg-gray-100">
           <tr>
-            <th rowSpan={2} className="border border-gray-400 p-1 w-32 bg-gray-200">
+            <th rowSpan={2} className="border border-gray-400 p-1 w-32 bg-gray-200 sticky left-0 z-30">
               {weekDays[0].toLocaleDateString('en-US', { day: 'numeric', month: 'short' })} - {weekDays[6].toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
             </th>
-            <th rowSpan={2} className="border border-gray-400 p-1 w-20 bg-gray-200 uppercase">Date</th>
+            <th rowSpan={2} className="border border-gray-400 p-1 w-20 bg-gray-200 uppercase sticky left-32 z-30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Date</th>
             {weekDays.map((day, idx) => {
               const isWeekend = day.getDay() === 0 || day.getDay() === 6;
               return (
@@ -109,13 +109,13 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
               <React.Fragment key={employee.id}>
                 {/* MORNING ROW */}
                 <tr className="hover:bg-gray-50 group">
-                  <td rowSpan={3} className="border border-gray-400 p-2 font-bold bg-white sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                  <td rowSpan={3} className="border border-gray-400 p-2 font-bold bg-white sticky left-0 z-10 group-hover:bg-gray-50 transition-colors">
                     <div className="flex flex-col">
                       <span className="uppercase text-sm">{employee.name}</span>
                       <span className="text-[8px] text-gray-400 font-normal">{employee.defaultRole}</span>
                     </div>
                   </td>
-                  <td className="border border-gray-400 p-1 font-bold text-blue-700 bg-blue-50/30 uppercase">Morning</td>
+                  <td className="border border-gray-400 p-1 font-bold text-blue-700 bg-blue-50 uppercase sticky left-32 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] group-hover:bg-blue-100 transition-colors">Morning</td>
                   {weekDays.map((day, idx) => {
                     const morningShifts = getShiftsForCell(employee.id, day, 'MORNING');
                     const shift = morningShifts[0];
@@ -172,7 +172,7 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                 
                 {/* LUNCH BREAK ROW */}
                 <tr className="bg-gray-50/30 text-[8px] italic text-gray-500">
-                  <td className="border border-gray-400 p-1 text-red-600 font-medium uppercase">Lunch break</td>
+                  <td className="border border-gray-400 p-1 text-red-600 font-medium uppercase sticky left-32 z-10 bg-gray-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] group-hover:bg-gray-100 transition-colors">Lunch break</td>
                   {weekDays.map((day, idx) => {
                     const morningShifts = getShiftsForCell(employee.id, day, 'MORNING');
                     const shift = morningShifts[0];
@@ -197,7 +197,7 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
 
                 {/* DINNER ROW */}
                 <tr className="hover:bg-gray-50 group">
-                  <td className="border border-gray-400 p-1 font-bold text-orange-700 bg-orange-50/30 uppercase">Dinner</td>
+                  <td className="border border-gray-400 p-1 font-bold text-orange-700 bg-orange-50 uppercase sticky left-32 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] group-hover:bg-orange-100 transition-colors">Dinner</td>
                   {weekDays.map((day, idx) => {
                     const dinnerShifts = getShiftsForCell(employee.id, day, 'DINNER');
                     const shift = dinnerShifts[0];
