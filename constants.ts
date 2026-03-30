@@ -22,7 +22,7 @@ export const DB_STAFF: DbStaff[] = [
   { staff_id: 5, first_name: 'BEN', last_name: '', is_active: 1 },
   { staff_id: 6, first_name: 'GRACE', last_name: '', is_active: 1 },
   { staff_id: 7, first_name: 'SUE', last_name: '', is_active: 1 },
-  { staff_id: 8, first_name: 'MAI', last_name: '', is_active: 1 },
+  { staff_id: 8, first_name: 'MILD', last_name: '', is_active: 1 },
   { staff_id: 9, first_name: 'PANG', last_name: '', is_active: 1 }
 ];
 
