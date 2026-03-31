@@ -18,6 +18,7 @@ const App: React.FC = () => {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [showOnlyWorking, setShowOnlyWorking] = useState(false);
 
   // Refs
   const contentRef = React.useRef<HTMLElement | null>(null);
@@ -332,6 +333,18 @@ const App: React.FC = () => {
           </button>
 
           <button 
+            onClick={() => setShowOnlyWorking(!showOnlyWorking)}
+            className={`sm:hidden px-3 py-1 rounded-full text-xs font-bold transition-all border ${
+              showOnlyWorking 
+                ? 'bg-green-600 text-white border-green-600 shadow-sm' 
+                : 'bg-white text-gray-600 border-gray-300'
+            }`}
+            title="Toggle Summary (Show only working staff)"
+          >
+            {showOnlyWorking ? 'WORKING' : 'SUMMARY'}
+          </button>
+
+          <button 
             onClick={() => setIsExportModalOpen(true)}
             className="text-gray-500 hover:text-green-600 transition"
             title="Export Roster"
@@ -390,6 +403,7 @@ const App: React.FC = () => {
               onEditShift={(s) => console.log('Edit', s)}
               onAddShift={handleOpenAddShift}
               onDeleteShift={handleDeleteShift}
+              showOnlyWorking={showOnlyWorking}
             />
           ) : (
             <WeeklyTimetableView 
@@ -398,6 +412,7 @@ const App: React.FC = () => {
               currentDate={currentDate}
               onAddShift={handleOpenAddShift}
               onDeleteShift={handleDeleteShift}
+              showOnlyWorking={showOnlyWorking}
             />
           )}
         </main>

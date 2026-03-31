@@ -8,9 +8,10 @@ interface WeeklyTimetableViewProps {
   currentDate: Date;
   onAddShift: (employeeId: string, date: string, type?: 'MORNING' | 'DINNER' | 'LUNCH') => void;
   onDeleteShift: (shiftId: string) => void;
+  showOnlyWorking?: boolean;
 }
 
-const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, employees, currentDate, onAddShift, onDeleteShift }) => {
+const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, employees, currentDate, onAddShift, onDeleteShift, showOnlyWorking }) => {
   
   const parseTimeToHours = (t: string) => {
     if (!t || !t.includes(':')) return 0;
@@ -36,6 +37,13 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
 
   const weekDays = getWeekDays(currentDate);
   const formatDateKey = (date: Date) => date.toISOString().split('T')[0];
+
+  const filteredEmployees = showOnlyWorking 
+    ? employees.filter(emp => {
+        const dateKey = formatDateKey(currentDate);
+        return shifts.some(s => s.employeeId === emp.id && s.date === dateKey);
+      })
+    : employees;
 
   const getShiftsForCell = (employeeId: string, date: Date, type: 'MORNING' | 'DINNER') => {
     const dateKey = formatDateKey(date);
@@ -104,7 +112,7 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
           </tr>
         </thead>
         <tbody>
-          {employees.map((employee) => {
+          {filteredEmployees.map((employee) => {
             return (
               <React.Fragment key={employee.id}>
                 {/* MORNING ROW */}

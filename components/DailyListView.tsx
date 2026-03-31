@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Trash2, Plus } from 'lucide-react';
 import { Employee, Shift, ShiftStatus } from '../types';
 
 interface DailyListViewProps {
@@ -10,9 +10,10 @@ interface DailyListViewProps {
   onEditShift: (shift: Shift) => void;
   onAddShift: (employeeId: string, date: string, type?: 'MORNING' | 'DINNER' | 'LUNCH') => void;
   onDeleteShift: (shiftId: string) => void;
+  showOnlyWorking?: boolean;
 }
 
-const DailyListView: React.FC<DailyListViewProps> = ({ shifts, employees, currentDate, onChangeDate, onEditShift, onAddShift, onDeleteShift }) => {
+const DailyListView: React.FC<DailyListViewProps> = ({ shifts, employees, currentDate, onChangeDate, onEditShift, onAddShift, onDeleteShift, showOnlyWorking }) => {
   
   const getEmployee = (id: string) => employees.find(e => e.id === id);
 
@@ -64,70 +65,83 @@ const DailyListView: React.FC<DailyListViewProps> = ({ shifts, employees, curren
 
       {/* List Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-24">
-        {shifts.length === 0 ? (
-          <div className="text-center text-gray-400 mt-10">
-            <p>No shifts scheduled for this day.</p>
-          </div>
-        ) : (
-          [...shifts]
-            .sort((a, b) => {
-              const indexA = employees.findIndex(e => e.id === a.employeeId);
-              const indexB = employees.findIndex(e => e.id === b.employeeId);
-              if (indexA !== indexB) return indexA - indexB;
-              
-              // If same employee, sort by start time
-              return a.startTime.localeCompare(b.startTime);
-            })
-            .map((shift) => {
-            const employee = getEmployee(shift.employeeId);
-            if (!employee) return null;
+        {employees.map((employee) => {
+          const employeeShifts = shifts.filter(s => s.employeeId === employee.id);
+          
+          if (showOnlyWorking && employeeShifts.length === 0) return null;
 
-            const isLate = shift.status === ShiftStatus.LATE;
-
-            return (
-              <div 
-                key={shift.id} 
-                onClick={() => onEditShift(shift)}
-                className={`bg-white rounded-lg shadow-sm border-l-8 p-4 flex items-center hover:shadow-md transition active:scale-[0.99] ${isLate ? 'border-red-500' : 'border-green-600'}`}
-              >
-                {/* Initials Avatar */}
-                <div className="mr-4 flex-shrink-0">
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-lg font-black shadow-sm ${employee.color} border border-black/5`}>
-                    {employee.initials}
+          return (
+            <div key={employee.id} className="space-y-2">
+              {employeeShifts.length === 0 ? (
+                // Empty state for employee (not working)
+                <div 
+                  className="bg-white/50 rounded-lg border border-dashed border-gray-300 p-4 flex items-center opacity-70 hover:opacity-100 transition"
+                  onClick={() => onAddShift(employee.id, currentDate.toISOString())}
+                >
+                  <div className="mr-4 flex-shrink-0">
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-lg font-black shadow-sm ${employee.color} grayscale opacity-50`}>
+                      {employee.initials}
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-gray-400 text-lg truncate uppercase">{employee.name}</h3>
+                    <p className="text-gray-400 text-[10px] uppercase font-bold">NOT WORKING</p>
+                  </div>
+                  <div className="bg-gray-100 p-2 rounded-full text-gray-400">
+                    <Plus size={16} />
                   </div>
                 </div>
-
-                {/* Details */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-black text-gray-900 text-xl truncate uppercase tracking-tight">{employee.name}</h3>
-                  <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">{employee.defaultRole} • {shift.location}</p>
-                </div>
-
-                {/* Time & Status */}
-                <div className="text-right flex-shrink-0 ml-2 flex flex-col items-end gap-2">
-                  <p className="font-black text-gray-900 text-2xl tabular-nums leading-none">
-                    {shift.startTime} - {shift.endTime || 'OPEN'}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <p className={`text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block ${isLate ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
-                      {shift.status}
-                    </p>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteShift(shift.id);
-                      }}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors no-export"
-                      title="Delete Shift"
+              ) : (
+                // Employee with shifts
+                employeeShifts.map((shift) => {
+                  const isLate = shift.status === ShiftStatus.LATE;
+                  return (
+                    <div 
+                      key={shift.id} 
+                      onClick={() => onEditShift(shift)}
+                      className={`bg-white rounded-lg shadow-sm border-l-8 p-4 flex items-center hover:shadow-md transition active:scale-[0.99] ${isLate ? 'border-red-500' : 'border-green-600'}`}
                     >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        )}
+                      {/* Initials Avatar */}
+                      <div className="mr-4 flex-shrink-0">
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-lg font-black shadow-sm ${employee.color} border border-black/5`}>
+                          {employee.initials}
+                        </div>
+                      </div>
+
+                      {/* Details */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-black text-gray-900 text-xl truncate uppercase tracking-tight">{employee.name}</h3>
+                        <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">{employee.defaultRole} • {shift.location}</p>
+                      </div>
+
+                      {/* Time & Status */}
+                      <div className="text-right flex-shrink-0 ml-2 flex flex-col items-end gap-2">
+                        <p className="font-black text-gray-900 text-2xl tabular-nums leading-none">
+                          {shift.startTime} - {shift.endTime || 'OPEN'}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className={`text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block ${isLate ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
+                            {shift.status}
+                          </p>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteShift(shift.id);
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors no-export"
+                            title="Delete Shift"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
