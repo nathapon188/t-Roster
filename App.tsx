@@ -5,7 +5,7 @@ import WeeklyTimetableView from './components/WeeklyTimetableView';
 import ExportModal from './components/ExportModal';
 import AddShiftModal from './components/AddShiftModal';
 import AvailabilityModal from './components/AvailabilityModal';
-import { ViewMode, Shift, Employee, DbShiftDefinition, DbStaffAvailability, ShiftStatus } from './types';
+import { ViewMode, Shift, Employee, DbShiftDefinition, DbStaffAvailability, ShiftStatus, DbClosedDate } from './types';
 import { db } from './services/db';
 
 const App: React.FC = () => {
@@ -19,6 +19,7 @@ const App: React.FC = () => {
   const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [showOnlyWorking, setShowOnlyWorking] = useState(false);
+  const [closedDates, setClosedDates] = useState<DbClosedDate[]>([]);
 
   // Refs
   const contentRef = React.useRef<HTMLElement | null>(null);
@@ -64,6 +65,9 @@ const App: React.FC = () => {
         // Fetch Roster Data
         const rosterData = await db.getShifts();
         setShifts(rosterData);
+
+        const closed = await db.getClosedDates();
+        setClosedDates(closed);
 
       } catch (err) {
         console.error(err);
@@ -229,6 +233,16 @@ const App: React.FC = () => {
       alert("Failed to restore shifts");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleClosedDate = async (date: string) => {
+    try {
+      await db.toggleClosedDate(date);
+      const updated = await db.getClosedDates();
+      setClosedDates(updated);
+    } catch (e) {
+      alert("Failed to toggle closed date");
     }
   };
 
@@ -404,6 +418,7 @@ const App: React.FC = () => {
               onAddShift={handleOpenAddShift}
               onDeleteShift={handleDeleteShift}
               showOnlyWorking={showOnlyWorking}
+              closedDates={closedDates}
             />
           ) : (
             <WeeklyTimetableView 
@@ -413,6 +428,8 @@ const App: React.FC = () => {
               onAddShift={handleOpenAddShift}
               onDeleteShift={handleDeleteShift}
               showOnlyWorking={showOnlyWorking}
+              closedDates={closedDates}
+              onToggleClosedDate={handleToggleClosedDate}
             />
           )}
         </main>

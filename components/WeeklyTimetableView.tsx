@@ -1,6 +1,6 @@
 import React from 'react';
 import { Clock, Plus, AlertTriangle, DollarSign, X } from 'lucide-react';
-import { Employee, Shift, ShiftStatus } from '../types';
+import { Employee, Shift, ShiftStatus, DbClosedDate } from '../types';
 
 interface WeeklyTimetableViewProps {
   shifts: Shift[];
@@ -9,9 +9,20 @@ interface WeeklyTimetableViewProps {
   onAddShift: (employeeId: string, date: string, type?: 'MORNING' | 'DINNER' | 'LUNCH') => void;
   onDeleteShift: (shiftId: string) => void;
   showOnlyWorking?: boolean;
+  closedDates?: DbClosedDate[];
+  onToggleClosedDate?: (date: string) => void;
 }
 
-const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, employees, currentDate, onAddShift, onDeleteShift, showOnlyWorking }) => {
+const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ 
+  shifts, 
+  employees, 
+  currentDate, 
+  onAddShift, 
+  onDeleteShift, 
+  showOnlyWorking,
+  closedDates = [],
+  onToggleClosedDate
+}) => {
   
   const parseTimeToHours = (t: string) => {
     if (!t || !t.includes(':')) return 0;
@@ -37,6 +48,7 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
 
   const weekDays = getWeekDays(currentDate);
   const formatDateKey = (date: Date) => date.toISOString().split('T')[0];
+  const weekDateKeys = weekDays.map(d => formatDateKey(d));
 
   const filteredEmployees = showOnlyWorking 
     ? employees.filter(emp => {
@@ -64,9 +76,24 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
     });
   };
 
-  const calculateTotalHours = (employeeId: string, filter?: (s: Shift) => boolean) => {
+  const calculateTotalHours = (employeeId: string, dayIndices?: number[]) => {
     if (employeeId === '3') return '-'; // No need to calculate hour for Tan
-    const empShifts = shifts.filter(s => s.employeeId === employeeId && (!filter || filter(s)));
+    
+    // Filter shifts belonging to this employee AND this specific week
+    const empShifts = shifts.filter(s => {
+      const isEmployee = s.employeeId === employeeId;
+      const isInWeek = weekDateKeys.includes(s.date);
+      
+      if (!isEmployee || !isInWeek) return false;
+      
+      // If dayIndices provided, further filter by those specific days (0=Mon, 6=Sun)
+      if (dayIndices) {
+        const shiftDayIndex = weekDateKeys.indexOf(s.date);
+        return dayIndices.includes(shiftDayIndex);
+      }
+      
+      return true;
+    });
     
     // If any shift is "open" (blank endTime), don't calculate total
     if (empShifts.some(s => s.endTime === '')) return '-';
@@ -86,10 +113,28 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
             <th rowSpan={2} className="border border-gray-400 p-1 w-20 bg-gray-200 uppercase sticky left-32 z-30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Date</th>
             {weekDays.map((day, idx) => {
               const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+              const dateKey = formatDateKey(day);
+              const isClosed = closedDates.some(d => d.date === dateKey);
               return (
-                <th key={idx} colSpan={3} className={`border border-gray-400 p-1 uppercase font-bold ${isWeekend ? 'bg-orange-100 text-orange-800' : 'bg-green-50 text-green-800'}`}>
-                  {day.toLocaleDateString('en-US', { weekday: 'short' })}
-                  <div className={`text-[9px] font-normal ${isWeekend ? 'text-orange-500/70' : 'text-gray-500'}`}>{day.getDate()}-{day.toLocaleDateString('en-US', { month: 'short' })}</div>
+                <th key={idx} colSpan={3} className={`border border-gray-400 p-1 uppercase font-bold ${isClosed ? 'bg-red-100 text-red-800' : (isWeekend ? 'bg-orange-100 text-orange-800' : 'bg-green-50 text-green-800')}`}>
+                  <div className="flex flex-col items-center">
+                    <span>{day.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                    <div className={`text-[9px] font-normal ${isClosed ? 'text-red-500/70' : (isWeekend ? 'text-orange-500/70' : 'text-gray-500')}`}>
+                      {day.getDate()}-{day.toLocaleDateString('en-US', { month: 'short' })}
+                    </div>
+                    {onToggleClosedDate && (
+                      <button 
+                        onClick={() => onToggleClosedDate(dateKey)}
+                        className={`mt-1 px-1 rounded text-[7px] border transition-colors no-export ${
+                          isClosed 
+                            ? 'bg-red-600 text-white border-red-600' 
+                            : 'bg-white text-gray-400 border-gray-300 hover:border-red-400 hover:text-red-400'
+                        }`}
+                      >
+                        {isClosed ? 'CLOSED' : 'OPEN'}
+                      </button>
+                    )}
+                  </div>
                 </th>
               );
             })}
@@ -127,9 +172,10 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                   {weekDays.map((day, idx) => {
                     const morningShifts = getShiftsForCell(employee.id, day, 'MORNING');
                     const shift = morningShifts[0];
+                    const isClosed = closedDates.some(d => d.date === formatDateKey(day));
                     return (
                       <React.Fragment key={idx}>
-                        <td className="border border-gray-400 p-1 text-center relative group/cell">
+                        <td className={`border border-gray-400 p-1 text-center relative group/cell ${isClosed ? 'bg-red-50/50' : ''}`}>
                           {shift ? (
                             <div className="relative group/shift">
                               <div className="font-bold">
@@ -146,6 +192,8 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                                 <X size={8} />
                               </button>
                             </div>
+                          ) : isClosed ? (
+                            <span className="text-[7px] text-red-300 font-bold uppercase">Closed</span>
                           ) : (
                             <button 
                               onClick={() => onAddShift(employee.id, formatDateKey(day), 'MORNING')}
@@ -155,27 +203,31 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                             </button>
                           )}
                         </td>
-                        <td className="border border-gray-400 p-1 text-center">
+                        <td className={`border border-gray-400 p-1 text-center ${isClosed ? 'bg-red-50/50' : ''}`}>
                           {shift && (
                             <div>
                               {shift.endTime || ((employee.id === '1' || employee.id === '9' || employee.id === '3') ? 'OPEN' : '')}
                             </div>
                           )}
                         </td>
-                        <td className="border border-gray-400 p-1 text-center font-bold text-green-700 bg-green-50/20">
+                        <td className={`border border-gray-400 p-1 text-center font-bold text-green-700 bg-green-50/20 ${isClosed ? 'bg-red-100/20' : ''}`}>
                           {shift && shift.duration > 0 ? shift.duration.toFixed(2) : '-'}
                         </td>
                       </React.Fragment>
                     );
                   })}
-                  <td rowSpan={3} className="border border-gray-400 p-1 text-center font-bold bg-gray-50">{calculateTotalHours(employee.id)}</td>
                   <td rowSpan={3} className="border border-gray-400 p-1 text-center font-bold bg-gray-50">
-                    {calculateTotalHours(employee.id, (s) => new Date(s.date).getDay() === 6)}
+                    {calculateTotalHours(employee.id, [0, 1, 2, 3, 4])}
                   </td>
                   <td rowSpan={3} className="border border-gray-400 p-1 text-center font-bold bg-gray-50">
-                    {calculateTotalHours(employee.id, (s) => new Date(s.date).getDay() === 0)}
+                    {calculateTotalHours(employee.id, [5])}
                   </td>
-                  <td rowSpan={3} className="border border-gray-400 p-1 text-center font-bold bg-green-50 text-green-800 text-xs">{calculateTotalHours(employee.id)}</td>
+                  <td rowSpan={3} className="border border-gray-400 p-1 text-center font-bold bg-gray-50">
+                    {calculateTotalHours(employee.id, [6])}
+                  </td>
+                  <td rowSpan={3} className="border border-gray-400 p-1 text-center font-bold bg-green-50 text-green-800 text-xs">
+                    {calculateTotalHours(employee.id)}
+                  </td>
                 </tr>
                 
                 {/* LUNCH BREAK ROW */}
@@ -209,9 +261,10 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                   {weekDays.map((day, idx) => {
                     const dinnerShifts = getShiftsForCell(employee.id, day, 'DINNER');
                     const shift = dinnerShifts[0];
+                    const isClosed = closedDates.some(d => d.date === formatDateKey(day));
                     return (
                       <React.Fragment key={idx}>
-                        <td className="border border-gray-400 p-1 text-center relative group/cell">
+                        <td className={`border border-gray-400 p-1 text-center relative group/cell ${isClosed ? 'bg-red-50/50' : ''}`}>
                           {shift ? (
                             <div className="relative group/shift">
                               <div className="font-bold">
@@ -228,6 +281,8 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                                 <X size={8} />
                               </button>
                             </div>
+                          ) : isClosed ? (
+                            <span className="text-[7px] text-red-300 font-bold uppercase">Closed</span>
                           ) : (
                             <button 
                               onClick={() => onAddShift(employee.id, formatDateKey(day), 'DINNER')}
@@ -237,14 +292,14 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({ shifts, emplo
                             </button>
                           )}
                         </td>
-                        <td className="border border-gray-400 p-1 text-center">
+                        <td className={`border border-gray-400 p-1 text-center ${isClosed ? 'bg-red-50/50' : ''}`}>
                           {shift && (
                             <div>
                               {shift.endTime || ((employee.id === '1' || employee.id === '9' || employee.id === '3') ? 'OPEN' : '')}
                             </div>
                           )}
                         </td>
-                        <td className="border border-gray-400 p-1 text-center font-bold text-green-700 bg-green-50/20">
+                        <td className={`border border-gray-400 p-1 text-center font-bold text-green-700 bg-green-50/20 ${isClosed ? 'bg-red-100/20' : ''}`}>
                           {employee.id === '3' ? '-' : (shift && shift.duration > 0 ? shift.duration.toFixed(2) : '-')}
                         </td>
                       </React.Fragment>

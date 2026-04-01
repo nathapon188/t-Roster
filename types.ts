@@ -84,3 +84,8 @@ export interface Shift {
 }
 
 export type ViewMode = 'daily' | 'weekly';
+
+export interface DbClosedDate {
+  date: string; // 'YYYY-MM-DD'
+  reason?: string;
+}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, Trash2, Plus } from 'lucide-react';
-import { Employee, Shift, ShiftStatus } from '../types';
+import { Employee, Shift, ShiftStatus, DbClosedDate } from '../types';
 
 interface DailyListViewProps {
   shifts: Shift[];
@@ -11,9 +11,20 @@ interface DailyListViewProps {
   onAddShift: (employeeId: string, date: string, type?: 'MORNING' | 'DINNER' | 'LUNCH') => void;
   onDeleteShift: (shiftId: string) => void;
   showOnlyWorking?: boolean;
+  closedDates?: DbClosedDate[];
 }
 
-const DailyListView: React.FC<DailyListViewProps> = ({ shifts, employees, currentDate, onChangeDate, onEditShift, onAddShift, onDeleteShift, showOnlyWorking }) => {
+const DailyListView: React.FC<DailyListViewProps> = ({ 
+  shifts, 
+  employees, 
+  currentDate, 
+  onChangeDate, 
+  onEditShift, 
+  onAddShift, 
+  onDeleteShift, 
+  showOnlyWorking,
+  closedDates = []
+}) => {
   
   const getEmployee = (id: string) => employees.find(e => e.id === id);
 
@@ -27,6 +38,9 @@ const DailyListView: React.FC<DailyListViewProps> = ({ shifts, employees, curren
       date.getMonth() === today.getMonth() &&
       date.getFullYear() === today.getFullYear();
   };
+
+  const formatDateKey = (date: Date) => date.toISOString().split('T')[0];
+  const isClosed = closedDates.some(d => d.date === formatDateKey(currentDate));
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -45,19 +59,22 @@ const DailyListView: React.FC<DailyListViewProps> = ({ shifts, employees, curren
   return (
     <div className="flex flex-col h-full bg-gray-50">
       {/* Date Navigator */}
-      <div className="bg-green-600 px-4 py-3 flex items-center justify-between text-white shadow-md z-10 sticky top-0">
+      <div className={`px-4 py-3 flex items-center justify-between text-white shadow-md z-10 sticky top-0 transition-colors ${isClosed ? 'bg-red-600' : 'bg-green-600'}`}>
         <button 
           onClick={() => onChangeDate(-1)}
-          className="p-1 rounded-full hover:bg-green-700 transition"
+          className={`p-1 rounded-full transition ${isClosed ? 'hover:bg-red-700' : 'hover:bg-green-700'}`}
         >
           <ChevronLeft size={24} />
         </button>
-        <span className="font-semibold text-lg">
-          {isToday(currentDate) ? "Today" : formatDate(currentDate)}
-        </span>
+        <div className="flex flex-col items-center">
+          <span className="font-semibold text-lg">
+            {isToday(currentDate) ? "Today" : formatDate(currentDate)}
+          </span>
+          {isClosed && <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-2 rounded">Closed / Public Holiday</span>}
+        </div>
         <button 
           onClick={() => onChangeDate(1)}
-          className="p-1 rounded-full hover:bg-green-700 transition"
+          className={`p-1 rounded-full transition ${isClosed ? 'hover:bg-red-700' : 'hover:bg-green-700'}`}
         >
           <ChevronRight size={24} />
         </button>

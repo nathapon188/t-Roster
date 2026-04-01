@@ -1,4 +1,4 @@
-import { Shift, ShiftStatus, Employee, DbRoster, DbShiftDefinition, DbStaffAvailability } from '../types';
+import { Shift, ShiftStatus, Employee, DbRoster, DbShiftDefinition, DbStaffAvailability, DbClosedDate } from '../types';
 import { DB_STAFF, DB_ROLES, DB_SHIFTS_DEF, DB_ROSTER, DB_STAFF_AVAILABILITY, DAY_MAP } from '../constants';
 
 // Helper to assign colors based on staff ID/Index (Deterministic)
@@ -16,6 +16,7 @@ class DatabaseService {
   private connected = true;
   // In-memory mock tables
   private rosterTable: DbRoster[] = [];
+  private closedDatesTable: DbClosedDate[] = [];
 
   constructor() {
     this.loadFromStorage();
@@ -33,10 +34,21 @@ class DatabaseService {
     } else {
       this.rosterTable = [...DB_ROSTER];
     }
+
+    const savedClosed = localStorage.getItem('closed_dates');
+    if (savedClosed) {
+      try {
+        this.closedDatesTable = JSON.parse(savedClosed);
+      } catch (e) {
+        console.error('Failed to parse saved closed dates', e);
+        this.closedDatesTable = [];
+      }
+    }
   }
 
   private saveToStorage() {
     localStorage.setItem('staff_roster_data', JSON.stringify(this.rosterTable));
+    localStorage.setItem('closed_dates', JSON.stringify(this.closedDatesTable));
   }
 
   async connect(): Promise<boolean> {
@@ -62,6 +74,22 @@ class DatabaseService {
   async getAllStaffAvailability(): Promise<DbStaffAvailability[]> {
     this.ensureConnection();
     return [...DB_STAFF_AVAILABILITY];
+  }
+
+  async getClosedDates(): Promise<DbClosedDate[]> {
+    this.ensureConnection();
+    return [...this.closedDatesTable];
+  }
+
+  async toggleClosedDate(date: string, reason?: string): Promise<void> {
+    this.ensureConnection();
+    const index = this.closedDatesTable.findIndex(d => d.date === date);
+    if (index >= 0) {
+      this.closedDatesTable.splice(index, 1);
+    } else {
+      this.closedDatesTable.push({ date, reason });
+    }
+    this.saveToStorage();
   }
 
   // --- Core Data ---

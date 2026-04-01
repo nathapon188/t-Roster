@@ -44,7 +44,7 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
   ];
   
   const dinnerStarts = employee.id === '3' ? ['L', 'D'] : ['16:30', '17:00', '17:15'];
-  const dinnerEnds = employee.id === '3' ? ['L', 'D'] : ['20:30', '20:45', '21:00', '21:15', '21:30', '21:45', '22:00'];
+  const dinnerEnds = employee.id === '3' ? ['L', 'D'] : ['19:30', '20:00', '20:30', '20:45', '21:00', '21:15', '21:30', '21:45', '22:00'];
 
   const parseTimeToMinutes = (t: string) => {
     if (!t || !t.includes(':')) return 0;
