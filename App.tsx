@@ -111,7 +111,15 @@ const App: React.FC = () => {
       return;
     }
 
-    const date = new Date(dateStr);
+    // Parse YYYY-MM-DD safely as local date
+    let date: Date;
+    if (dateStr.includes('T')) {
+      date = new Date(dateStr);
+    } else {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      date = new Date(y, m - 1, d);
+    }
+    
     const avail = await db.getStaffAvailability(parseInt(employeeId));
     setAvailability(avail);
     
@@ -404,7 +412,7 @@ const App: React.FC = () => {
 
           <button 
             // Default "Quick Add" to today's date and first employee if clicked from top
-            onClick={() => handleOpenAddShift(employees[0]?.id || '1', new Date().toISOString())}
+            onClick={() => handleOpenAddShift(employees[0]?.id || '1', toLocalDateString(new Date()))}
             className="w-8 h-8 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-gray-700 transition shadow-lg"
           >
             <Plus size={18} />

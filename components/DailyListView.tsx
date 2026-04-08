@@ -77,7 +77,7 @@ const DailyListView: React.FC<DailyListViewProps> = ({
     try {
       const data = JSON.parse(e.dataTransfer.getData('application/json'));
       if (data.type === 'employee') {
-        onAddShift(data.id, currentDate.toISOString());
+        onAddShift(data.id, toLocalDateString(currentDate));
       }
     } catch (err) {}
   };
@@ -159,7 +159,7 @@ const DailyListView: React.FC<DailyListViewProps> = ({
                 // Empty state for employee (not working)
                 <div 
                   className="bg-white/50 rounded-lg border border-dashed border-gray-300 p-4 flex items-center opacity-70 hover:opacity-100 transition"
-                  onClick={() => onAddShift(employee.id, currentDate.toISOString())}
+                  onClick={() => onAddShift(employee.id, toLocalDateString(currentDate))}
                 >
                   <div className="mr-4 flex-shrink-0">
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-lg font-black shadow-sm ${employee.color} grayscale opacity-50`}>
