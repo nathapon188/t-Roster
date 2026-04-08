@@ -7,6 +7,7 @@ interface DailyListViewProps {
   employees: Employee[];
   currentDate: Date;
   onChangeDate: (delta: number) => void;
+  onSetDate: (date: Date) => void;
   onEditShift: (shift: Shift) => void;
   onAddShift: (employeeId: string, date: string, type?: 'MORNING' | 'DINNER' | 'LUNCH') => void;
   onDeleteShift: (shiftId: string) => void;
@@ -19,6 +20,7 @@ const DailyListView: React.FC<DailyListViewProps> = ({
   employees, 
   currentDate, 
   onChangeDate, 
+  onSetDate,
   onEditShift, 
   onAddShift, 
   onDeleteShift, 
@@ -41,6 +43,23 @@ const DailyListView: React.FC<DailyListViewProps> = ({
 
   const formatDateKey = (date: Date) => date.toISOString().split('T')[0];
   const isClosed = closedDates.some(d => d.date === formatDateKey(currentDate));
+
+  const getWeekDays = () => {
+    const days = [];
+    const startOfWeek = new Date(currentDate);
+    const day = startOfWeek.getDay();
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); 
+    startOfWeek.setDate(diff);
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      days.push(d);
+    }
+    return days;
+  };
+
+  const weekDays = getWeekDays();
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -79,6 +98,38 @@ const DailyListView: React.FC<DailyListViewProps> = ({
           <ChevronRight size={24} />
         </button>
       </div>
+
+      {/* Horizontal Day Selector (Mobile Working Mode) */}
+      {showOnlyWorking && (
+        <div className="bg-white border-b border-gray-200 shrink-0">
+          <div className="px-4 pt-3 pb-1">
+            <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Working Staff Summary</h2>
+          </div>
+          <div className="px-2 pb-3 flex justify-between items-center overflow-x-auto scrollbar-hide">
+            {weekDays.map((day, idx) => {
+            const isSelected = formatDateKey(day) === formatDateKey(currentDate);
+            const isDayClosed = closedDates.some(d => d.date === formatDateKey(day));
+            return (
+              <button
+                key={idx}
+                onClick={() => onSetDate(day)}
+                className={`flex flex-col items-center min-w-[44px] py-1 rounded-lg transition-all ${
+                  isSelected 
+                    ? 'bg-green-600 text-white shadow-md scale-105' 
+                    : isDayClosed 
+                      ? 'text-red-400' 
+                      : 'text-gray-500 hover:bg-gray-100'
+                }`}
+              >
+                <span className="text-[10px] font-bold uppercase">{day.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                <span className="text-sm font-black">{day.getDate()}</span>
+                {isDayClosed && <div className="w-1 h-1 bg-red-500 rounded-full mt-0.5" />}
+              </button>
+            );
+          })}
+          </div>
+        </div>
+      )}
 
       {/* List Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-24">
