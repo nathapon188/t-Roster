@@ -80,11 +80,18 @@ const App: React.FC = () => {
     initDatabase();
   }, []);
 
+  const toLocalDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Filter shifts based on current view
   const filteredShifts = shifts.filter(shift => {
     if (viewMode === 'daily') {
       const shiftDate = shift.date; // YYYY-MM-DD
-      const current = currentDate.toISOString().split('T')[0];
+      const current = toLocalDateString(currentDate);
       return shiftDate === current;
     }
     // For weekly, we pass all and let the component handle grid placement
@@ -124,7 +131,7 @@ const App: React.FC = () => {
     if (!pendingShiftData) return;
 
     const { empId, date } = pendingShiftData;
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = toLocalDateString(date);
     const def = shiftDefinitions.find(d => d.shift_id === shiftDefId);
 
     const isSpecial = empId === '1' || empId === '9' || empId === '3';
@@ -193,7 +200,7 @@ const App: React.FC = () => {
       for (let i = 0; i < 7; i++) {
         const d = new Date(start);
         d.setDate(start.getDate() + i);
-        weekDates.push(d.toISOString().split('T')[0]);
+        weekDates.push(toLocalDateString(d));
       }
       
       // Find all shifts in this week

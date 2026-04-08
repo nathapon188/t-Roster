@@ -41,7 +41,14 @@ const DailyListView: React.FC<DailyListViewProps> = ({
       date.getFullYear() === today.getFullYear();
   };
 
-  const formatDateKey = (date: Date) => date.toISOString().split('T')[0];
+  const toLocalDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const formatDateKey = (date: Date) => toLocalDateString(date);
   const isClosed = closedDates.some(d => d.date === formatDateKey(currentDate));
 
   const getWeekDays = () => {
@@ -99,21 +106,29 @@ const DailyListView: React.FC<DailyListViewProps> = ({
         </button>
       </div>
 
-      {/* Horizontal Day Selector (Mobile Working Mode) */}
-      {showOnlyWorking && (
-        <div className="bg-white border-b border-gray-200 shrink-0">
-          <div className="px-4 pt-3 pb-1">
-            <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Working Staff Summary</h2>
-          </div>
-          <div className="px-2 pb-3 flex justify-between items-center overflow-x-auto scrollbar-hide">
-            {weekDays.map((day, idx) => {
+      {/* Horizontal Day Selector (Mobile Daily View) */}
+      <div className="bg-white border-b border-gray-200 shrink-0 sm:hidden">
+        <div className="px-4 pt-3 pb-1 flex justify-between items-center">
+          <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+            {showOnlyWorking ? 'Working Staff Summary' : 'Daily Staff Roster'}
+          </h2>
+          <button 
+            onClick={() => onSetDate(new Date())}
+            className="text-[10px] font-black text-green-600 uppercase tracking-widest hover:bg-green-50 px-2 py-0.5 rounded"
+          >
+            Go to Today
+          </button>
+        </div>
+        <div className="px-2 pb-3 flex justify-between items-center overflow-x-auto scrollbar-hide">
+          {weekDays.map((day, idx) => {
             const isSelected = formatDateKey(day) === formatDateKey(currentDate);
             const isDayClosed = closedDates.some(d => d.date === formatDateKey(day));
+            const isTodayDay = formatDateKey(day) === toLocalDateString(new Date());
             return (
               <button
                 key={idx}
                 onClick={() => onSetDate(day)}
-                className={`flex flex-col items-center min-w-[44px] py-1 rounded-lg transition-all ${
+                className={`flex flex-col items-center min-w-[44px] py-1 rounded-lg transition-all relative ${
                   isSelected 
                     ? 'bg-green-600 text-white shadow-md scale-105' 
                     : isDayClosed 
@@ -123,13 +138,13 @@ const DailyListView: React.FC<DailyListViewProps> = ({
               >
                 <span className="text-[10px] font-bold uppercase">{day.toLocaleDateString('en-US', { weekday: 'short' })}</span>
                 <span className="text-sm font-black">{day.getDate()}</span>
+                {isTodayDay && !isSelected && <div className="absolute -top-1 right-1 w-1.5 h-1.5 bg-green-500 rounded-full border border-white" />}
                 {isDayClosed && <div className="w-1 h-1 bg-red-500 rounded-full mt-0.5" />}
               </button>
             );
           })}
           </div>
         </div>
-      )}
 
       {/* List Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-24">

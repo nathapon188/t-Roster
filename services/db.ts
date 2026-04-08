@@ -51,6 +51,13 @@ class DatabaseService {
     localStorage.setItem('closed_dates', JSON.stringify(this.closedDatesTable));
   }
 
+  private toLocalDateString(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   async connect(): Promise<boolean> {
     console.log(`[Local] Initializing local storage database...`);
     this.connected = true;
@@ -279,7 +286,7 @@ class DatabaseService {
       // Skip Monday (1) and Wednesday (3)
       if (dayOfWeek === 1 || dayOfWeek === 3) return;
       
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = this.toLocalDateString(date);
       const dayId = DAY_MAP[dayOfWeek];
       
       // Check if TAN already has a shift on this date in the Dinner row (shift_id 3)
@@ -306,7 +313,7 @@ class DatabaseService {
 
   async saveWeekAsTemplate(weekDates: Date[]): Promise<void> {
     this.ensureConnection();
-    const dateStrings = weekDates.map(d => d.toISOString().split('T')[0]);
+    const dateStrings = weekDates.map(d => this.toLocalDateString(d));
     const weekShifts = this.rosterTable.filter(r => dateStrings.includes(r.roster_date));
     
     // Normalize shifts for template (remove roster_id and roster_date, keep day_id)
@@ -333,7 +340,7 @@ class DatabaseService {
     }
 
     const template = JSON.parse(templateStr);
-    const dateStrings = weekDates.map(d => d.toISOString().split('T')[0]);
+    const dateStrings = weekDates.map(d => this.toLocalDateString(d));
 
     template.forEach((t: any) => {
       // Find the date in weekDates that matches t.day_id
@@ -345,7 +352,7 @@ class DatabaseService {
       });
 
       if (targetDate) {
-        const dateStr = targetDate.toISOString().split('T')[0];
+        const dateStr = this.toLocalDateString(targetDate);
         
         // Check for duplicate
         const exists = this.rosterTable.find(r => 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { X, Clock, AlertCircle, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DbShiftDefinition, DbStaffAvailability, Employee } from '../types';
 import { DAY_MAP } from '../constants';
 
@@ -40,18 +40,36 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
     '10:00', '10:15', '10:30', '10:45', '11:00'
   ];
   const morningEnds = [
-    '10:30', '10:45', '11:00', '11:15', '11:30', '11:45', '12:00', '12:15', 
-    '12:30', '12:45', '13:00', '13:15', '13:30', '13:45', '14:00', '14:15', 
-    '14:30', '14:45', '15:00'
+    '07:00', '07:15', '07:30', '07:45', '08:00', '08:15', '08:30', '08:45', 
+    '09:00', '09:15', '09:30', '09:45', '10:00', '10:15', '10:30', '10:45', 
+    '11:00', '11:15', '11:30', '11:45', '12:00', '12:15', '12:30', '12:45', 
+    '13:00', '13:15', '13:30', '13:45', '14:00', '14:15', '14:30', '14:45', 
+    '15:00', '15:15', '15:30', '15:45', '16:00'
   ];
   
-  const dinnerStarts = employee.id === '3' ? ['L', 'D'] : ['16:30', '17:00', '17:15', '17:30', '17:45', '18:00'];
-  const dinnerEnds = employee.id === '3' ? ['L', 'D'] : ['19:30', '20:00', '20:30', '20:45', '21:00', '21:15', '21:30', '21:45', '22:00'];
+  const dinnerStarts = employee.id === '3' ? ['L', 'D'] : ['16:30', '17:00', '17:15', '17:30', '17:45', '18:00', '18:15', '18:30', '18:45', '19:00'];
+  const dinnerEnds = employee.id === '3' ? ['L', 'D'] : [
+    '18:00', '18:15', '18:30', '18:45', '19:00', '19:15', '19:30', '19:45', 
+    '20:00', '20:30', '20:45', '21:00', '21:15', '21:30', '21:45', '22:00', 
+    '22:15', '22:30', '22:45', '23:00', '23:15', '23:30'
+  ];
 
   const parseTimeToMinutes = (t: string) => {
     if (!t || !t.includes(':')) return 0;
     const [h, m] = t.split(':').map(Number);
     return h * 60 + m;
+  };
+
+  const formatMinutesToTime = (mins: number) => {
+    const h = Math.floor(mins / 60) % 24;
+    const m = mins % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  };
+
+  const adjustTime = (time: string, delta: number) => {
+    if (time === 'L' || time === 'D') return time;
+    const mins = parseTimeToMinutes(time);
+    return formatMinutesToTime(mins + delta);
   };
 
   const getStartOptions = () => {
@@ -132,7 +150,26 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
           {localShiftType && (localShiftType === 'MORNING' || localShiftType === 'DINNER') ? (
             <div className="space-y-6">
               <div>
-                <h4 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wider">Select Start Time</h4>
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Select Start Time</h4>
+                  {selectedStart && selectedStart !== 'L' && selectedStart !== 'D' && (
+                    <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                      <button 
+                        onClick={() => setSelectedStart(adjustTime(selectedStart, -15))}
+                        className="p-1 hover:bg-white rounded transition shadow-sm"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      <span className="text-xs font-bold w-12 text-center">{selectedStart}</span>
+                      <button 
+                        onClick={() => setSelectedStart(adjustTime(selectedStart, 15))}
+                        className="p-1 hover:bg-white rounded transition shadow-sm"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <div className="grid grid-cols-4 gap-2">
                   {startOptions.map(time => (
                     <button
@@ -151,7 +188,26 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
 
               {selectedStart && (
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wider">Select Out Time</h4>
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Select Out Time</h4>
+                    {selectedEnd && selectedEnd !== 'L' && selectedEnd !== 'D' && (
+                      <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                        <button 
+                          onClick={() => setSelectedEnd(adjustTime(selectedEnd, -15))}
+                          className="p-1 hover:bg-white rounded transition shadow-sm"
+                        >
+                          <ChevronLeft size={16} />
+                        </button>
+                        <span className="text-xs font-bold w-12 text-center">{selectedEnd}</span>
+                        <button 
+                          onClick={() => setSelectedEnd(adjustTime(selectedEnd, 15))}
+                          className="p-1 hover:bg-white rounded transition shadow-sm"
+                        >
+                          <ChevronRight size={16} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   <div className="grid grid-cols-4 gap-2">
                     {endOptions.map(time => (
                       <button
