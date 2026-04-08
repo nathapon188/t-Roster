@@ -29,6 +29,7 @@ export interface DbRoster {
   roster_date: string; // 'YYYY-MM-DD'
   start_time_override?: string; // 'HH:mm:ss'
   end_time_override?: string;   // 'HH:mm:ss'
+  has_break?: number; // 0 or 1
   notes?: string;
 }
 
@@ -80,6 +81,7 @@ export interface Shift {
   role: string;      // role_name
   status: ShiftStatus; // Mocked for UI
   duration: number;  // Computed
+  hasBreak: boolean; // New field
   notes?: string;
 }
 

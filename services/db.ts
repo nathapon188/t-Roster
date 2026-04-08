@@ -202,8 +202,11 @@ class DatabaseService {
       const endFmt = fmtTime(endTime);
 
       let duration = (endTime === '' || startTime === '' || startTime === 'L' || startTime === 'D') ? 0 : (end - start);
-      // Subtract 30 mins if the shift is more than 7 hours
-      if (duration > 7) {
+      
+      // Use manual break if provided, otherwise fallback to auto-break for shifts > 7h
+      const hasBreak = r.has_break !== undefined ? r.has_break === 1 : duration > 7;
+      
+      if (hasBreak && duration > 0) {
         duration -= 0.5;
       }
 
@@ -217,13 +220,14 @@ class DatabaseService {
         role: role.role_name,
         status: ShiftStatus.PUBLISHED, // Not in roster schema, defaulting
         duration: duration,
+        hasBreak: hasBreak,
         notes: r.notes || undefined
       };
     }).filter(s => s !== null) as Shift[];
   }
 
   // Add shift using specific Definition ID or custom times
-  async addShift(shift: Shift, shiftDefId?: number, startTime?: string, endTime?: string): Promise<void> {
+  async addShift(shift: Shift, shiftDefId?: number, startTime?: string, endTime?: string, hasBreak?: boolean): Promise<void> {
     this.ensureConnection();
     const newId = Math.floor(Math.random() * 100000);
     
@@ -245,6 +249,7 @@ class DatabaseService {
       roster_date: shift.date,
       start_time_override: startTime !== undefined ? (startTime.includes(':') ? `${startTime}:00` : startTime) : undefined,
       end_time_override: endTime !== undefined ? (endTime.includes(':') ? `${endTime}:00` : endTime) : undefined,
+      has_break: hasBreak !== undefined ? (hasBreak ? 1 : 0) : undefined,
       notes: ''
     });
 

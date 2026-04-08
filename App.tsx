@@ -120,7 +120,7 @@ const App: React.FC = () => {
   };
 
   // Step 2: User selects shift type in Modal -> Save
-  const handleSaveShift = async (shiftDefId: number, startTime?: string, endTime?: string) => {
+  const handleSaveShift = async (shiftDefId: number, startTime?: string, endTime?: string, hasBreak?: boolean) => {
     if (!pendingShiftData) return;
 
     const { empId, date } = pendingShiftData;
@@ -137,7 +137,8 @@ const App: React.FC = () => {
       location: 'Taringa',
       role: 'Staff', // Defaulting for now
       status: 'Draft' as any,
-      duration: 0 
+      duration: 0,
+      hasBreak: hasBreak || false
     };
     
     // Simple duration calc for optimistic UI
@@ -152,15 +153,19 @@ const App: React.FC = () => {
     if (end < start && newShift.endTime !== '') end += 24;
     
     let duration = newShift.endTime === '' ? 0 : (end - start);
-    // Subtract 30 mins if the shift is more than 7 hours
-    if (duration > 7) {
+    
+    // Use manual break if provided, otherwise fallback to auto-break for shifts > 7h
+    const finalHasBreak = hasBreak !== undefined ? hasBreak : duration > 7;
+    
+    if (finalHasBreak && duration > 0) {
       duration -= 0.5;
     }
     newShift.duration = duration;
+    newShift.hasBreak = finalHasBreak;
 
     try {
       setShifts(prev => [...prev, newShift]);
-      await db.addShift(newShift, shiftDefId, startTime, endTime);
+      await db.addShift(newShift, shiftDefId, startTime, endTime, hasBreak);
       setIsAddModalOpen(false);
       setPendingShiftData(null);
       

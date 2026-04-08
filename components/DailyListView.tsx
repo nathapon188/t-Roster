@@ -137,6 +137,11 @@ const DailyListView: React.FC<DailyListViewProps> = ({
                           {shift.startTime} - {shift.endTime || 'OPEN'}
                         </p>
                         <div className="flex items-center gap-2">
+                          {shift.hasBreak && (
+                            <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 uppercase">
+                              -30m Break
+                            </span>
+                          )}
                           <p className={`text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block ${isLate ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
                             {shift.status}
                           </p>

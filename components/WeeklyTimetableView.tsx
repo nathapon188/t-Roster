@@ -235,16 +235,12 @@ const WeeklyTimetableView: React.FC<WeeklyTimetableViewProps> = ({
                   <td className="border border-gray-400 p-1 text-red-600 font-medium uppercase sticky left-32 z-10 bg-gray-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] group-hover:bg-gray-100 transition-colors">Lunch break</td>
                   {weekDays.map((day, idx) => {
                     const morningShifts = getShiftsForCell(employee.id, day, 'MORNING');
-                    const shift = morningShifts[0];
-                    let showBreak = false;
-                    if (employee.id !== '3' && shift) {
-                      const start = parseTimeToHours(shift.startTime);
-                      let end = parseTimeToHours(shift.endTime);
-                      if (end < start) end += 24;
-                      if ((end - start) > 7) {
-                        showBreak = true;
-                      }
-                    }
+                    const dinnerShifts = getShiftsForCell(employee.id, day, 'DINNER');
+                    const mShift = morningShifts[0];
+                    const dShift = dinnerShifts[0];
+                    
+                    const showBreak = (mShift && mShift.hasBreak) || (dShift && dShift.hasBreak);
+                    
                     return (
                       <React.Fragment key={idx}>
                         <td colSpan={3} className="border border-gray-400 p-0.5 text-center">

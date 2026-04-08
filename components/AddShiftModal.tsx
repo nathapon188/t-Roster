@@ -6,7 +6,7 @@ import { DAY_MAP } from '../constants';
 interface AddShiftModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (shiftDefId: number, startTime?: string, endTime?: string) => void;
+  onSave: (shiftDefId: number, startTime?: string, endTime?: string, hasBreak?: boolean) => void;
   employee: Employee | null;
   date: Date;
   shiftDefinitions: DbShiftDefinition[];
@@ -20,6 +20,7 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
   const [selectedStart, setSelectedStart] = React.useState<string | null>(null);
   const [selectedEnd, setSelectedEnd] = React.useState<string | null>(null);
   const [localShiftType, setLocalShiftType] = React.useState<'MORNING' | 'DINNER' | 'LUNCH' | null>(null);
+  const [hasBreak, setHasBreak] = React.useState<boolean>(false);
 
   // Reset selection when modal opens or shiftType changes
   React.useEffect(() => {
@@ -27,6 +28,7 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
       setSelectedStart(null);
       setSelectedEnd(null);
       setLocalShiftType(initialShiftType || null);
+      setHasBreak(false);
     }
   }, [isOpen, initialShiftType]);
 
@@ -80,7 +82,7 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
     if (localShiftType && selectedStart && (selectedEnd || isSpecialEmployee)) {
       // Find matching shift definition if possible, or just pass custom times
       const defId = localShiftType === 'MORNING' ? 1 : (localShiftType === 'DINNER' ? 3 : 2);
-      onSave(defId, selectedStart, selectedEnd || '');
+      onSave(defId, selectedStart, selectedEnd || '', hasBreak);
     }
   };
 
@@ -163,6 +165,19 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
                   </div>
                 </div>
               )}
+
+              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                <input 
+                  type="checkbox" 
+                  id="hasBreak" 
+                  checked={hasBreak}
+                  onChange={(e) => setHasBreak(e.target.checked)}
+                  className="w-5 h-5 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+                />
+                <label htmlFor="hasBreak" className="text-sm font-bold text-blue-800 cursor-pointer select-none">
+                  Subtract 30-min break from total hours
+                </label>
+              </div>
 
               <button
                 disabled={!selectedStart || (!selectedEnd && !(employee.id === '1' || employee.id === '9' || employee.id === '3'))}
