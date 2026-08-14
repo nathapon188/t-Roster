@@ -1,24 +1,16 @@
 {
-  "name": "t-roster",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "name": "roster-api",
+  "version": "1.0.0",
+  "description": "JSON-file backed roster API",
+  "main": "server.js",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "lint": "tsc --noEmit"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "export:text": "node export-text.js"
   },
   "dependencies": {
-    "html2canvas": "^1.4.1",
-    "lucide-react": "^0.562.0",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3"
-  },
-  "devDependencies": {
-    "@types/node": "^22.14.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
   }
 }
