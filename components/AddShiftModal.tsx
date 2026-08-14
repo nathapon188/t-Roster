@@ -47,8 +47,14 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
     '15:00', '15:15', '15:30', '15:45', '16:00'
   ];
   
-  const dinnerStarts = employee.id === '3' ? ['L', 'D'] : ['16:30', '17:00', '17:15', '17:30', '17:45', '18:00', '18:15', '18:30', '18:45', '19:00'];
-  const dinnerEnds = employee.id === '3' ? ['L', 'D'] : [
+  // TAN (id 3) is full time, so his dinner row records "on from Lunch, off after
+  // Dinner" rather than clock times: L on the way in, D on the way out. Nobody
+  // else gets the letters. His morning row is left on ordinary times, because
+  // some days he starts at 06:00 like everyone else.
+  const isFullTime = employee.id === '3';
+
+  const dinnerStarts = isFullTime ? ['L'] : ['16:30', '17:00', '17:15', '17:30', '17:45', '18:00', '18:15', '18:30', '18:45', '19:00'];
+  const dinnerEnds = isFullTime ? ['D'] : [
     '18:00', '18:15', '18:30', '18:45', '19:00', '19:15', '19:30', '19:45', 
     '20:00', '20:30', '20:45', '21:00', '21:15', '21:30', '21:45', '22:00', 
     '22:15', '22:30', '22:45', '23:00', '23:15', '23:30'
@@ -85,7 +91,7 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
       return morningEnds.filter(time => parseTimeToMinutes(time) > startVal);
     }
     if (localShiftType === 'DINNER') {
-      if (!selectedStart || employee.id === '3') return dinnerEnds;
+      if (!selectedStart || isFullTime) return dinnerEnds;
       const startVal = parseTimeToMinutes(selectedStart);
       return dinnerEnds.filter(time => parseTimeToMinutes(time) > startVal);
     }
@@ -170,6 +176,11 @@ const AddShiftModal: React.FC<AddShiftModalProps> = ({
                     </div>
                   )}
                 </div>
+                {isFullTime && localShiftType === 'DINNER' && (
+                  <p className="text-xs text-gray-500 mb-2">
+                    Full time: on from lunch (L), off after dinner (D). Use the Morning row for a clock start.
+                  </p>
+                )}
                 <div className="grid grid-cols-4 gap-2">
                   {startOptions.map(time => (
                     <button
