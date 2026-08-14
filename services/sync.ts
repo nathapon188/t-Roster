@@ -126,9 +126,31 @@ class SyncService {
     window.addEventListener('online', () => void this.pull());
   }
 
+  /**
+   * Save now rather than waiting out the debounce. With nothing unsaved this
+   * still pulls, so the button doubles as "show me what the others have done".
+   */
+  async saveNow(): Promise<void> {
+    if (this.pushTimer) {
+      clearTimeout(this.pushTimer);
+      this.pushTimer = null;
+    }
+    if (!this.shared) return;
+    if (this.dirty) await this.push();
+    else await this.pull();
+  }
+
+  /** True when this device is holding edits the shared copy has not seen. */
+  get hasUnsaved(): boolean {
+    return this.dirty;
+  }
+
   /** Called by db.ts after any change that should reach the other devices. */
   markDirty() {
     this.dirty = true;
+    // Re-announce the status so the Save button can show there is something
+    // waiting to go up.
+    this.listeners.forEach(l => l(this.status, this.detail));
     if (!this.shared || !this.passcode) return;
     if (this.pushTimer) clearTimeout(this.pushTimer);
     this.pushTimer = setTimeout(() => void this.push(), PUSH_DEBOUNCE);

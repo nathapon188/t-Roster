@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Cloud, CloudOff, RefreshCw, KeyRound, Check, Laptop } from 'lucide-react';
+import { Cloud, CloudOff, RefreshCw, KeyRound, Check, Laptop, CloudUpload } from 'lucide-react';
 import { SyncStatus as Status } from '../types';
 import { sync } from '../services/sync';
 
@@ -10,13 +10,27 @@ const SyncStatusPill: React.FC = () => {
   const [detail, setDetail] = useState<string | undefined>();
   const [open, setOpen] = useState(false);
   const [entry, setEntry] = useState('');
+  const [unsaved, setUnsaved] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
 
   useEffect(() => sync.subscribe((s, d) => {
     setStatus(s);
     setDetail(d);
+    setUnsaved(sync.hasUnsaved);
     // Nothing to type in once the passcode is accepted.
     if (s === 'idle') setOpen(false);
   }), []);
+
+  // Push straight away instead of waiting out the debounce, so "I pressed Save"
+  // and "the other machines have it" are the same moment.
+  const saveNow = async () => {
+    await sync.saveNow();
+    setUnsaved(sync.hasUnsaved);
+    if (!sync.hasUnsaved) {
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 2000);
+    }
+  };
 
   const needsPasscode = status === 'unauthorised';
 
@@ -40,7 +54,23 @@ const SyncStatusPill: React.FC = () => {
   };
 
   return (
-    <div className="relative">
+    <div className="relative flex items-center gap-2">
+      {sync.shared && (
+        <button
+          onClick={saveNow}
+          disabled={status === 'syncing'}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors disabled:opacity-60 no-export ${
+            unsaved
+              ? 'bg-green-600 text-white hover:bg-green-700'
+              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+          }`}
+          title="Save now and send to every device"
+        >
+          {justSaved ? <Check size={12} /> : <CloudUpload size={12} />}
+          <span>{justSaved ? 'Saved' : unsaved ? 'Save' : 'Sync'}</span>
+        </button>
+      )}
+
       <button
         onClick={() => setOpen(o => !o)}
         className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-colors ${current.className}`}

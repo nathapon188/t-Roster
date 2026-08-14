@@ -27,6 +27,19 @@ to run: one JSON document lives in Netlify Blobs behind a passcode.
   when the connection or the function is unavailable. The status pill in the
   header shows Shared, Syncing, Offline or This device, and "This device only"
   opts out of sharing entirely.
+- **Save** in the header pushes straight away instead of waiting out the 1.2s
+  debounce, and turns green while there is anything unsaved. With nothing
+  waiting it reads **Sync** and pulls instead, so it doubles as "show me what
+  the others have done".
+
+### If the pill says "Not set up"
+
+That is the function replying 503, which it only does when `ROSTER_PASSCODE` is
+missing from its environment. The function itself is deployed and running. Check,
+in order: the variable's scope includes **Functions** and not just Builds; the
+site has been redeployed since the variable was added, because env changes only
+take effect on the next deploy; and the variable covers the deploy context you
+are actually opening, not just Production.
 
 ### Setting the passcode
 
