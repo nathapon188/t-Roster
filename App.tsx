@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Filter, Plus, Download, LayoutList, CalendarDays, Database, Loader2, Wifi, WifiOff, CalendarX, Save } from 'lucide-react';
+import { Calendar, Filter, Plus, Download, LayoutList, CalendarDays, Database, Loader2, Wifi, WifiOff, CalendarX, Save, Check } from 'lucide-react';
 import DailyListView from './components/DailyListView';
 import WeeklyTimetableView from './components/WeeklyTimetableView';
 import ExportModal from './components/ExportModal';
@@ -31,6 +31,7 @@ const App: React.FC = () => {
   const [allAvailability, setAllAvailability] = useState<DbStaffAvailability[]>([]); // Used for Availability Modal (all users)
   
   const [pendingShiftData, setPendingShiftData] = useState<{empId: string, date: Date, type?: 'MORNING' | 'DINNER' | 'LUNCH'} | null>(null);
+  const [templateSaved, setTemplateSaved] = useState(false);
 
   const handleDeleteShift = async (shiftId: string) => {
     try {
@@ -310,7 +311,9 @@ const App: React.FC = () => {
       }
       
       await db.saveWeekAsTemplate(weekDates);
-      alert("Current week saved as default template!");
+      // No dialog to dismiss: the icon confirms it for a couple of seconds.
+      setTemplateSaved(true);
+      setTimeout(() => setTemplateSaved(false), 2000);
     } catch (e) {
       alert("Failed to save template");
     } finally {
@@ -413,12 +416,12 @@ const App: React.FC = () => {
             <Download size={22} />
           </button>
           
-          <button 
+          <button
             onClick={handleSaveTemplate}
-            className="text-gray-500 hover:text-blue-600 transition"
-            title="Save Current Week as Default Template"
+            className={`transition ${templateSaved ? 'text-green-600' : 'text-gray-500 hover:text-blue-600'}`}
+            title={templateSaved ? 'Saved as the default template' : 'Save Current Week as Default Template'}
           >
-            <Save size={22} />
+            {templateSaved ? <Check size={22} /> : <Save size={22} />}
           </button>
 
           <button 
