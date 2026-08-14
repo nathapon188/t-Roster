@@ -1,16 +1,32 @@
 {
-  "name": "roster-api",
+  "name": "t-roster",
+  "private": true,
   "version": "1.0.0",
-  "description": "JSON-file backed roster API",
-  "main": "server.js",
+  "description": "Staff roster shared across machines through a Netlify Blobs store",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "tsc --noEmit",
+    "api": "node server.js",
     "export:text": "node export-text.js"
   },
   "dependencies": {
+    "@netlify/blobs": "^10.7.13",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "html2canvas": "^1.4.1",
+    "lucide-react": "^0.562.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@types/react": "^19.2.3",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
   }
 }
